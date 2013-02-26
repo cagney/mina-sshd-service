@@ -20,6 +20,9 @@ package org.apache.sshd.client;
 
 import org.apache.sshd.common.TcpipForwarderFactory;
 import org.apache.sshd.common.FactoryManager;
+import org.apache.sshd.common.service.ServiceClientsFactory;
+
+import java.util.List;
 
 /**
  * The <code>ClientFactoryManager</code> enable the retrieval of additional
@@ -54,4 +57,9 @@ public interface ClientFactoryManager extends FactoryManager {
      * @return A <code>TcpipForwarderFactory</code>
      */
     TcpipForwarderFactory getTcpipForwarderFactory();
+
+    /**
+     * Retrieve the initial service that the client should request
+     */
+    ServiceClientsFactory getServiceClientsFactory();
 }

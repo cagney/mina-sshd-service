@@ -77,6 +77,8 @@ import org.apache.sshd.common.mac.HMACSHA196;
 import org.apache.sshd.common.random.BouncyCastleRandom;
 import org.apache.sshd.common.random.JceRandom;
 import org.apache.sshd.common.random.SingletonRandomFactory;
+import org.apache.sshd.common.service.DefaultServiceClientsFactory;
+import org.apache.sshd.common.service.ServiceClientsFactory;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.common.signature.SignatureDSA;
 import org.apache.sshd.common.signature.SignatureRSA;
@@ -136,6 +138,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
     protected SessionFactory sessionFactory;
 
     private ServerKeyVerifier serverKeyVerifier;
+    private ServiceClientsFactory serviceClientsFactory;
 
     public SshClient() {
     }
@@ -154,6 +157,14 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
 
     public void setServerKeyVerifier(ServerKeyVerifier serverKeyVerifier) {
         this.serverKeyVerifier = serverKeyVerifier;
+    }
+
+    public ServiceClientsFactory getServiceClientsFactory() {
+        return serviceClientsFactory;
+    }
+
+    public void setServiceClientsFactory(ServiceClientsFactory serviceClientsFactory) {
+        this.serviceClientsFactory = serviceClientsFactory;
     }
 
     protected void checkConfig() {
@@ -183,6 +194,9 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         }
         if (getServerKeyVerifier() == null) {
             throw new IllegalArgumentException("ServerKeyVerifier not set");
+        }
+        if (getServiceClientsFactory() == null) {
+            throw new IllegalArgumentException("ServiceClientsFactory not set");
         }
         // Register the additional agent forwarding channel if needed
         if (getAgentFactory() != null) {
@@ -293,6 +307,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         TcpipForwarderFactory tcpipForwarderFactory = new DefaultTcpipForwarderFactory();
         client.setTcpipForwarderFactory( tcpipForwarderFactory );
         client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+        client.setServiceClientsFactory(new DefaultServiceClientsFactory());
         return client;
     }
 

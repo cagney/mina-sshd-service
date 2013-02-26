@@ -31,6 +31,7 @@ import org.apache.sshd.client.channel.ChannelSubsystem;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.common.Session;
 import org.apache.sshd.common.future.CloseFuture;
+import org.apache.sshd.common.service.ServiceClient;
 
 /**
  * An authenticated session to a given SSH server
@@ -160,4 +161,8 @@ public interface ClientSession extends Session {
      */
     ClientFactoryManager getClientFactoryManager();
 
+    /**
+     * Switch to the specified service.
+     */
+    void switchToNextService(boolean authenticated, String username);
 }

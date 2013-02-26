@@ -31,7 +31,7 @@ import org.apache.sshd.common.util.Buffer;
 public interface Session {
 
     public enum State {
-        ReceiveKexInit, Kex, ReceiveNewKeys, AuthRequestSent, WaitForAuth, UserAuth, Running, Closed
+        ReceiveKexInit, Kex, ReceiveNewKeys, ServiceRequestSent, WaitForAuth, WaitForServiceRequest, UserAuth, Running, Closed
     }
 
     /**

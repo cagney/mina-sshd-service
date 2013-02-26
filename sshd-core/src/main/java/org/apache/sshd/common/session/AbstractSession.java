@@ -19,23 +19,20 @@
 package org.apache.sshd.common.session;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.future.IoFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.session.IoSession;
-import org.apache.sshd.client.channel.AbstractClientChannel;
 import org.apache.sshd.common.Channel;
 import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.Compression;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.Digest;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.common.KeyExchange;
@@ -49,10 +46,9 @@ import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.TcpipForwarder;
 import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.future.DefaultCloseFuture;
-import org.apache.sshd.common.future.SshFuture;
-import org.apache.sshd.common.future.SshFutureListener;
 import org.apache.sshd.common.util.Buffer;
 import org.apache.sshd.common.util.BufferUtils;
+import org.apache.sshd.common.service.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +65,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
  */
-public abstract class AbstractSession implements Session {
+public abstract class AbstractSession<S extends Service> implements Session {
 
     /**
      * Name of the property where this session is stored in the attributes of the
@@ -85,8 +81,6 @@ public abstract class AbstractSession implements Session {
     protected final IoSession ioSession;
     /** The pseudo random generator */
     protected final Random random;
-    /** The tcpip forwarder */
-    protected final TcpipForwarder tcpipForwarder;
     /** Lock object for this session state */
     protected final Object lock = new Object();
     /**
@@ -95,15 +89,17 @@ public abstract class AbstractSession implements Session {
     protected final CloseFuture closeFuture = new DefaultCloseFuture(lock);
     /** The session is being closed */
     protected volatile boolean closing;
+    private boolean closingIoSession;
     /** Boolean indicating if this session has been authenticated or not */
     protected boolean authed;
-    /** Map of channels keyed by the identifier */
-    protected final Map<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>();
-    /** Next channel identifier */
-    protected int nextChannelId;
 
     /** Session listener */
     protected final List<SessionListener> listeners = new ArrayList<SessionListener>();
+
+    /**
+     * The service that is currently up-and-running, null until the service is started.
+     */
+    protected S currentService;
 
     //
     // Key exchange support
@@ -138,8 +134,6 @@ public abstract class AbstractSession implements Session {
     protected int decoderLength;
     protected final Object encodeLock = new Object();
     protected final Object decodeLock = new Object();
-    protected final Object requestLock = new Object();
-    protected final AtomicReference<Buffer> requestResult = new AtomicReference<Buffer>();
     protected final Map<AttributeKey<?>, Object> attributes = new ConcurrentHashMap<AttributeKey<?>, Object>();
     protected String username;
 
@@ -155,7 +149,6 @@ public abstract class AbstractSession implements Session {
         this.factoryManager = factoryManager;
         this.ioSession = ioSession;
         this.random = factoryManager.getRandomFactory().create();
-        this.tcpipForwarder = factoryManager.getTcpipForwarderFactory().create(this);
     }
 
     /**
@@ -295,58 +288,48 @@ public abstract class AbstractSession implements Session {
     }
 
     /**
-     * Close this session.
-     * This method will close all channels, then close the underlying MINA session.
-     * The call will not block until the mina session is actually closed.
+     * Shutdown the entire session including anything like channels.
      */
-    public CloseFuture close(final boolean immediately) {
-	    final AbstractSession s = this;
+    public CloseFuture close(boolean immediately) {
+        synchronized (lock) {
+            if (currentService != null) {
+                currentService.close(immediately);
+                return closeFuture;
+            } else {
+                return closeIoSession(immediately);
+            }
+        }
+    }
+
+    /**
+     * Close this session; its assumed that the caller has already closed any thing
+     * like channels.
+     */
+    public CloseFuture closeIoSession(boolean immediately) {
         class IoSessionCloser implements IoFutureListener {
             public void operationComplete(IoFuture future) {
                 synchronized (lock) {
                     log.debug("IoSession closed");
                     closeFuture.setClosed();
+                    state = State.Closed;
                     lock.notifyAll();
                 }
-                state = State.Closed;
-                log.info("Session {}@{} closed", s.getUsername(), s.getIoSession().getRemoteAddress());
+                log.info("Session {}@{} closed", getUsername(), getIoSession().getRemoteAddress());
                 // Fire 'close' event
                 final ArrayList<SessionListener> l = new ArrayList<SessionListener>(listeners);
                 for (SessionListener sl : l) {
-                    sl.sessionClosed(s);
+                    sl.sessionClosed(AbstractSession.this);
                 }
             }
         }
-        tcpipForwarder.close();
         synchronized (lock) {
-            if (!closing) {
-                try {
-                    closing = true;
-                    log.debug("Closing session");
-                    Channel[] channelToClose = channels.values().toArray(new Channel[channels.values().size()]);
-                    if (channelToClose.length > 0) {
-                        final AtomicInteger latch = new AtomicInteger(channelToClose.length);
-                        for (Channel channel : channelToClose) {
-                            log.debug("Closing channel {}", channel.getId());
-                            channel.close(immediately).addListener(new SshFutureListener() {
-                                public void operationComplete(SshFuture sshFuture) {
-                                    if (latch.decrementAndGet() == 0) {
-                                        log.debug("Closing IoSession");
-                                        ioSession.close(true).addListener(new IoSessionCloser());
-                                    }
-                                }
-                            });
-                        }
-                    } else {
-                        log.debug("Closing IoSession");
-                        ioSession.close(immediately).addListener(new IoSessionCloser());
-                    }
-                } catch (Throwable t) {
-                    log.warn("Error closing session", t);
-                }
+            if (!closingIoSession) {
+                closingIoSession = true;
+                log.debug("Closing IoSession");
+                ioSession.close(immediately).addListener(new IoSessionCloser());
             }
-            return closeFuture;
         }
+        return closeFuture;
     }
 
     /**
@@ -379,17 +362,7 @@ public abstract class AbstractSession implements Session {
      * @throws java.io.IOException if an error occured when encoding sending the packet
      */
     public Buffer request(Buffer buffer) throws IOException {
-        synchronized (requestLock) {
-            try {
-                synchronized (requestResult) {
-                    writePacket(buffer);
-                    requestResult.wait();
-                    return requestResult.get();
-                }
-            } catch (InterruptedException e) {
-                throw (InterruptedIOException) new InterruptedIOException().initCause(e);
-            }
-        }
+        return findService(ConnectionService.class).request(buffer);
     }
 
     /**
@@ -455,6 +428,7 @@ public abstract class AbstractSession implements Session {
             }
             // Compress the packet if needed
             if (outCompression != null && (authed || !outCompression.isDelayed())) {
+                log.trace("compress output - delayed {} authed {}", outCompression.isDelayed(), authed);
                 outCompression.compress(buffer);
                 len = buffer.available();
             }
@@ -564,6 +538,7 @@ public abstract class AbstractSession implements Session {
                     int wpos = decoderBuffer.wpos();
                     // Decompress if needed
                     if (inCompression != null && (authed || !inCompression.isDelayed())) {
+                        log.trace("uncompress input - delayed {} authed {}", inCompression.isDelayed(), authed);
                         if (uncompressBuffer == null) {
                             uncompressBuffer = new Buffer();
                         } else {
@@ -950,108 +925,8 @@ public abstract class AbstractSession implements Session {
         negociated = guess;
     }
 
-    protected void requestSuccess(Buffer buffer) throws Exception{
-        synchronized (requestResult) {
-            requestResult.set(new Buffer(buffer.getCompactData()));
-            requestResult.notify();
-        }
-    }
-
-    protected void requestFailure(Buffer buffer) throws Exception{
-        synchronized (requestResult) {
-            requestResult.set(null);
-            requestResult.notify();
-        }
-    }
-
-
-    protected int getNextChannelId() {
-        synchronized (channels) {
-            return nextChannelId++;
-        }
-    }
-
     public int registerChannel(Channel channel) throws Exception {
-        int channelId = getNextChannelId();
-        channel.init(this, channelId);
-        channels.put(channelId, channel);
-        return channelId;
-    }
-
-    protected void channelOpenConfirmation(Buffer buffer) throws IOException {
-        Channel channel = getChannel(buffer);
-        log.debug("Received SSH_MSG_CHANNEL_OPEN_CONFIRMATION on channel {}", channel.getId());
-        int recipient = buffer.getInt();
-        int rwsize = buffer.getInt();
-        int rmpsize = buffer.getInt();
-        channel.handleOpenSuccess(recipient, rwsize, rmpsize, buffer);
-    }
-
-    protected void channelOpenFailure(Buffer buffer) throws IOException {
-        AbstractClientChannel channel = (AbstractClientChannel) getChannel(buffer);
-        log.debug("Received SSH_MSG_CHANNEL_OPEN_FAILURE on channel {}", channel.getId());
-        channels.remove(channel.getId());
-        channel.handleOpenFailure(buffer);
-    }
-
-    /**
-     * Process incoming data on a channel
-     *
-     * @param buffer the buffer containing the data
-     * @throws Exception if an error occurs
-     */
-    protected void channelData(Buffer buffer) throws Exception {
-        Channel channel = getChannel(buffer);
-        channel.handleData(buffer);
-    }
-
-    /**
-     * Process incoming extended data on a channel
-     *
-     * @param buffer the buffer containing the data
-     * @throws Exception if an error occurs
-     */
-    protected void channelExtendedData(Buffer buffer) throws Exception {
-        Channel channel = getChannel(buffer);
-        channel.handleExtendedData(buffer);
-    }
-
-    /**
-     * Process a window adjust packet on a channel
-     *
-     * @param buffer the buffer containing the window adjustement parameters
-     * @throws Exception if an error occurs
-     */
-    protected void channelWindowAdjust(Buffer buffer) throws Exception {
-        try {
-            Channel channel = getChannel(buffer);
-            channel.handleWindowAdjust(buffer);
-        } catch (SshException e) {
-            log.info(e.getMessage());
-        }
-    }
-
-    /**
-     * Process end of file on a channel
-     *
-     * @param buffer the buffer containing the packet
-     * @throws Exception if an error occurs
-     */
-    protected void channelEof(Buffer buffer) throws Exception {
-        Channel channel = getChannel(buffer);
-        channel.handleEof();
-    }
-
-    /**
-     * Close a channel due to a close packet received
-     *
-     * @param buffer the buffer containing the packet
-     * @throws Exception if an error occurs
-     */
-    protected void channelClose(Buffer buffer) throws Exception {
-        Channel channel = getChannel(buffer);
-        channel.handleClose();
-        unregisterChannel(channel);
+        return findService(ConnectionService.class).registerChannel(channel);
     }
 
     /**
@@ -1060,29 +935,7 @@ public abstract class AbstractSession implements Session {
      * @param channel the channel
      */
     public void unregisterChannel(Channel channel) {
-        channels.remove(channel.getId());
-    }
-
-    /**
-     * Service a request on a channel
-     *
-     * @param buffer the buffer containing the request
-     * @throws Exception if an error occurs
-     */
-    protected void channelRequest(Buffer buffer) throws IOException {
-        Channel channel = getChannel(buffer);
-        channel.handleRequest(buffer);
-    }
-
-    /**
-     * Process a failure on a channel
-     *
-     * @param buffer the buffer containing the packet
-     * @throws Exception if an error occurs
-     */
-    protected void channelFailure(Buffer buffer) throws Exception {
-        Channel channel = getChannel(buffer);
-        channel.handleFailure();
+        findService(ConnectionService.class).unregisterChannel(channel);
     }
 
     /**
@@ -1093,14 +946,7 @@ public abstract class AbstractSession implements Session {
      * @throws IOException if the channel does not exists
      */
     protected Channel getChannel(Buffer buffer) throws IOException {
-        int recipient = buffer.getInt();
-        Channel channel = channels.get(recipient);
-        if (channel == null) {
-            buffer.rpos(buffer.rpos() - 5);
-            SshConstants.Message cmd = buffer.getCommand();
-            throw new SshException("Received " + cmd + " on unknown channel " + recipient);
-        }
-        return channel;
+        return findService(ConnectionService.class).getChannel(buffer);
     }
 
     /**
@@ -1175,6 +1021,15 @@ public abstract class AbstractSession implements Session {
      * {@inheritDoc}
      */
     public TcpipForwarder getTcpipForwarder() {
-        return this.tcpipForwarder;
+        return findService(ConnectionService.class).getTcpipForwarder();
+    }
+
+    /**
+     * Find the instance of the specified service.
+     *
+     * The client has a list of services so will need to be searched; the server only ever has one service.
+     */
+    protected <T> T findService(Class<T> target) {
+        return (T)currentService;
     }
 }

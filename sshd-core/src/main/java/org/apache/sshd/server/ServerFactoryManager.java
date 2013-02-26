@@ -24,6 +24,8 @@ import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.ForwardingAcceptorFactory;
+import org.apache.sshd.common.service.ServiceProvider;
+import org.apache.sshd.common.service.ServiceProviderFactory;
 import org.apache.sshd.server.auth.gss.GSSAuthenticator;
 
 /**
@@ -50,8 +52,7 @@ public interface ServerFactoryManager extends FactoryManager {
 
     /**
      * Key used to retrieve the value of the timeout after which
-     * the server will close the connection if the client has not been
-     * authenticated.
+     * the server will close the connection if the service has not been started.
      */
     public static final String AUTH_TIMEOUT = "auth-timeout";
 
@@ -144,5 +145,12 @@ public interface ServerFactoryManager extends FactoryManager {
      * @return A <code>ForwardNioAcceptorFactory</code>
      */
     ForwardingAcceptorFactory getX11ForwardingAcceptorFactory();
+
+    /**
+     * Retrieve the service provider factory.
+     *
+     * @return A list of factories that create service providers
+     */
+    List<ServiceProviderFactory> getServiceProviderFactories();
 
 }

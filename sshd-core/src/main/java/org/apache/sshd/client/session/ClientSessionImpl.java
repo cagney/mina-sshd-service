@@ -272,10 +272,13 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
                 if (authed) {
                     cond |= AUTHED;
                 }
-                UserAuthServiceClient authService = findService(UserAuthServiceClient.class);
-                if (authService != null) {
-                    if (authService.isWaitingForAuth()) {
-                        cond |= WAIT_AUTH;
+                if ((mask & WAIT_AUTH) != 0) {
+                    // only poke around for UserAuthService when needed
+                    UserAuthServiceClient authService = findService(UserAuthServiceClient.class);
+                    if (authService != null) {
+                        if (authService.isWaitingForAuth()) {
+                            cond |= WAIT_AUTH;
+                        }
                     }
                 }
                 if ((cond & mask) != 0) {

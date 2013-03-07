@@ -26,128 +26,149 @@ import java.security.KeyPair;
 public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> implements ServiceClient {
 
     private UserAuth userAuth;
-    private AuthFuture authFuture;
     private final CloseFuture closeFuture;
-    private enum State { Uninitialized, WaitForAuth, Authenticating, Authenticated }
-    private State state = State.Uninitialized;
+
+    /**
+     * The AuthFuture that is being used by the current auth request.  This encodes the state.
+     * isSuccess -> authenticated, else if isDone -> server waiting for user auth, else authenticating.
+     */
+    private volatile AuthFuture authFuture;
+
+
 
     public UserAuthServiceClient(ClientSessionImpl session, Object sessionLock, CloseFuture closeFuture) {
         super(session, sessionLock);
         this.closeFuture = closeFuture;
-    }
-
-    /**
-     * ClientSession.waitFor() might be waiting for this service to go into WAIT_AUTH state so
-     * need to wake everything up when ever this state changes.
-     *
-     * Perhaps it should instead modify auth-future so that it also signals when a further auth is required
-     * or perhaps it should get the auth information using callbacks/polling?
-     * @param state
-     */
-    private void nextState(State state) {
-        this.state = state;
-        this.sessionLock.notifyAll();
+        // start with a failed auth future?
+        this.authFuture = new DefaultAuthFuture(sessionLock);
+        logger.debug("created");
     }
 
     public void serverAcceptedService() {
-        nextState(State.WaitForAuth);
-        // Wake up anything that might be waiting for this to transition into the wait-for-auth state.
-        this.sessionLock.notifyAll();
+        synchronized (sessionLock) {
+            logger.debug("accepted");
+            // kick start the authentication process by failing the pending auth.
+            this.authFuture.setAuthed(false);
+        }
     }
 
+    /**
+     * Is the server waiting on the client to provide some sort of authentication?
+     * @return
+     */
     public boolean isWaitingForAuth() {
-        return state == State.WaitForAuth;
+        synchronized (sessionLock) {
+            return authFuture.isFailure();
+        }
     }
 
     public void process(SshConstants.Message cmd, Buffer buffer) throws Exception {
-        switch (state) {
-            case WaitForAuth:
-                // We're waiting for the client to send an authentication request
-                // TODO: handle unexpected incoming packets
-                break;
-            case Authenticating:
-                if (userAuth == null) {
-                    throw new IllegalStateException("State is userAuth, but no user auth pending!!!");
-                }
+        synchronized (sessionLock) {
+            if (this.authFuture.isSuccess()) {
+                logger.debug("illegal state");
+                throw new IllegalStateException("UserAuth message delivered to authenticated client");
+            } else if (this.authFuture.isDone()) {
+                logger.debug("ignoring random message");
+               // ignore for now; TODO: random packets
+            } else {
                 buffer.rpos(buffer.rpos() - 1);
                 processUserAuth(buffer);
-                break;
-            case Uninitialized:
-            case Authenticated:
-                throw new IllegalStateException("State is " + state);
+            }
         }
     }
 
     public void close(boolean immediately) {
-        if (authFuture != null && !authFuture.isDone()) {
-            authFuture.setException(new SshException("Session is closed"));
-        }
-        session.closeIoSession(immediately);
-    }
-
-    private void verifyAuthSetup() {
-        if (closeFuture.isClosed()) {
-            throw new IllegalStateException("Session is closed");
-        }
-        if (state == State.Authenticated) {
-            throw new IllegalStateException("Already authorized");
-        }
-        if (userAuth != null) {
-            throw new IllegalStateException("A user authentication request is already pending");
+        synchronized (sessionLock) {
+            if (!authFuture.isDone()) {
+                authFuture.setException(new SshException("Session is closed"));
+            }
+            session.closeIoSession(immediately);
         }
     }
 
-    private AuthFuture waitForAuth() {
-        session.waitFor(ClientSession.CLOSED | ClientSession.WAIT_AUTH, 0);
-        if (closeFuture.isClosed()) {
+    private void waitForAuth() {
+        // isDone indicates that the last auth finished and a new one can commence.
+        while (!this.authFuture.isDone()) {
+            logger.debug("waiting to send authentication");
+            try {
+                this.authFuture.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (this.closeFuture.isClosed()) {
             throw new IllegalStateException("Session is closed");
         }
-        return new DefaultAuthFuture(sessionLock);
+        if (this.authFuture.isSuccess()) {
+            throw new IllegalStateException("Already authenticated");
+        }
+        if (this.authFuture.isCanceled()) {
+            throw new IllegalStateException("A user authentication request was canceled");
+        }
+        if (!this.authFuture.isFailure()) {
+            throw new IllegalStateException("Unexpected authentication state");
+        }
+        if (this.userAuth != null) {
+            throw new IllegalStateException("Authentication already in progress?");
+        }
+        logger.debug("ready to try authentication with new lock");
+        // The new future !isDone() - i.e., in progress blocking out other waits.
+        this.authFuture = new DefaultAuthFuture(sessionLock);
     }
 
     private void processUserAuth(Buffer buffer) throws IOException {
-
+        logger.debug("processing {}", userAuth);
         switch (userAuth.next(buffer)) {
             case Success:
-                authFuture.setAuthed(true);
+                logger.debug("succeeded with {}", userAuth);
                 session.switchToNextService(true, userAuth.getUsername());
-                nextState(State.Authenticated);
+                authFuture.setAuthed(true);
+                // also need to wake up waitFor(int,long)
+                sessionLock.notifyAll();
                 break;
             case Failure:
-                authFuture.setAuthed(false);
-                userAuth = null;
-                nextState(State.WaitForAuth);
+                logger.debug("failed with {}", userAuth);
+                this.userAuth = null;
+                this.authFuture.setAuthed(false);
+                // also need to wake up waitFor(int,long)
+                sessionLock.notifyAll();
                 break;
             case Continued:
-                nextState(State.Authenticating);
+                logger.debug("continuing with {}", userAuth);
                 break;
         }
     }
 
     public AuthFuture authAgent(String username) throws IOException {
-        verifyAuthSetup();
-        if (session.getFactoryManager().getAgentFactory() == null) {
-            throw new IllegalStateException("No ssh agent factory has been configured");
+        logger.debug("will try authentication with agent");
+        synchronized (sessionLock) {
+            waitForAuth();
+            if (session.getFactoryManager().getAgentFactory() == null) {
+                throw new IllegalStateException("No ssh agent factory has been configured");
+            }
+            userAuth = new UserAuthAgent(session, username);
+            processUserAuth(null);
+            return authFuture;
         }
-        authFuture = waitForAuth();
-        userAuth = new UserAuthAgent(session, username);
-        processUserAuth(null);
-        return authFuture;
     }
 
     public AuthFuture authPassword(String username, String password) throws IOException {
-        verifyAuthSetup();
-        authFuture = waitForAuth();
-        userAuth = new UserAuthPassword(session, username, password);
-        processUserAuth(null);
-        return authFuture;
+        logger.debug("will try authentication with username/password");
+        synchronized (sessionLock) {
+            waitForAuth();
+            userAuth = new UserAuthPassword(session, username, password);
+            processUserAuth(null);
+            return authFuture;
+        }
     }
 
     public AuthFuture authPublicKey(String username, KeyPair key) throws IOException {
-        verifyAuthSetup();
-        authFuture = waitForAuth();
-        userAuth = new UserAuthPublicKey(session, username, key);
-        processUserAuth(null);
-        return authFuture;
+        logger.debug("will try authentication with public-key");
+        synchronized (sessionLock) {
+            waitForAuth();
+            userAuth = new UserAuthPublicKey(session, username, key);
+            processUserAuth(null);
+            return authFuture;
+        }
     }
 }

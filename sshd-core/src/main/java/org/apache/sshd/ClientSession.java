@@ -46,8 +46,8 @@ import org.apache.sshd.common.service.ServiceClient;
  * be created on a given session concurrently.
  *
  * When using the client in an interactive mode, the
- * {@link #waitFor(int, long)} method can be used to listen to specific
- * events such as the session being established, authenticated or closed.
+ * {@link CloseFuture} and {@link AuthFuture} can be used to listen to specific
+ * events such as the session being established, authenticated, or closed.
  *
  * When a given session is no longer used, it must be closed using the
  * {@link #close(boolean)} method.
@@ -55,11 +55,6 @@ import org.apache.sshd.common.service.ServiceClient;
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
  */
 public interface ClientSession extends Session {
-
-    int TIMEOUT =     0x0001;
-    int CLOSED =      0x0002;
-    int WAIT_AUTH =   0x0004;
-    int AUTHED =      0x0008;
 
     /**
      * Authenticate the session with the given username using an ssh agent.
@@ -140,11 +135,6 @@ public interface ClientSession extends Session {
      * Stop forwarding of the given remote address.
      */
     void stopRemotePortForwarding(SshdSocketAddress remote) throws Exception;
-
-    /**
-     * Wait for a specific state.
-     */
-    int waitFor(int mask, long timeout);
 
     /**
      * Close this session.

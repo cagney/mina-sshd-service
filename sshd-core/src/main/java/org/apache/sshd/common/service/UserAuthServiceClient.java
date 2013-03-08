@@ -125,15 +125,11 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
                 logger.debug("succeeded with {}", userAuth);
                 session.switchToNextService(true, userAuth.getUsername());
                 authFuture.setAuthed(true);
-                // also need to wake up waitFor(int,long)
-                sessionLock.notifyAll();
                 break;
             case Failure:
                 logger.debug("failed with {}", userAuth);
                 this.userAuth = null;
                 this.authFuture.setAuthed(false);
-                // also need to wake up waitFor(int,long)
-                sessionLock.notifyAll();
                 break;
             case Continued:
                 logger.debug("continuing with {}", userAuth);

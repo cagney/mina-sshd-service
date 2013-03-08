@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.sshd.client.SessionFactory;
+import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.session.ClientSessionImpl;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.session.AbstractSession;
@@ -82,15 +83,14 @@ public class ServerTest {
         client.start();
         ClientSession s = client.connect("localhost", port).await().getSession();
         int nbTrials = 0;
-        int res = 0;
-        while ((res & ClientSession.CLOSED) == 0) {
+        AuthFuture authFuture;
+        do {
             nbTrials ++;
-            s.authPassword("smx", "buggy");
-            res = s.waitFor(ClientSession.CLOSED | ClientSession.WAIT_AUTH, 5000);
-            if (res == ClientSession.TIMEOUT) {
-                throw new TimeoutException();
-            }
-        }
+            Assert.assertTrue("far too many attempts", nbTrials < 100);
+            authFuture = s.authPassword("smx", "buggy");
+            authFuture.await(5000);
+            Assert.assertTrue("operation completed", authFuture.isDone());
+        } while (authFuture.getException() == null);
         Assert.assertTrue(nbTrials > 10);
     }
 

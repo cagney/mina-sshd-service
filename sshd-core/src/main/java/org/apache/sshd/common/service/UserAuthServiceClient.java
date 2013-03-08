@@ -1,6 +1,5 @@
 package org.apache.sshd.common.service;
 
-import org.apache.sshd.ClientSession;
 import org.apache.sshd.client.UserAuth;
 import org.apache.sshd.client.auth.UserAuthAgent;
 import org.apache.sshd.client.auth.UserAuthPassword;
@@ -86,34 +85,41 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
         }
     }
 
-    private void waitForAuth() {
+    private boolean readyForAuth() {
         // isDone indicates that the last auth finished and a new one can commence.
         while (!this.authFuture.isDone()) {
             logger.debug("waiting to send authentication");
             try {
                 this.authFuture.await();
             } catch (InterruptedException e) {
+                logger.debug("Unexpected interrupt", e);
                 throw new RuntimeException(e);
             }
         }
-        if (this.closeFuture.isClosed()) {
-            throw new IllegalStateException("Session is closed");
-        }
         if (this.authFuture.isSuccess()) {
+            logger.debug("already authenticated");
             throw new IllegalStateException("Already authenticated");
         }
         if (this.authFuture.isCanceled()) {
+            logger.debug("canceled");
             throw new IllegalStateException("A user authentication request was canceled");
         }
+        if (this.authFuture.getException() != null) {
+            logger.debug("probably closed", this.authFuture.getException());
+            return false;
+        }
         if (!this.authFuture.isFailure()) {
+            logger.debug("unexpected state");
             throw new IllegalStateException("Unexpected authentication state");
         }
         if (this.userAuth != null) {
+            logger.debug("authentication already in progress");
             throw new IllegalStateException("Authentication already in progress?");
         }
         logger.debug("ready to try authentication with new lock");
         // The new future !isDone() - i.e., in progress blocking out other waits.
         this.authFuture = new DefaultAuthFuture(sessionLock);
+        return true;
     }
 
     private void processUserAuth(Buffer buffer) throws IOException {
@@ -142,12 +148,13 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
     public AuthFuture authAgent(String username) throws IOException {
         logger.debug("will try authentication with agent");
         synchronized (sessionLock) {
-            waitForAuth();
-            if (session.getFactoryManager().getAgentFactory() == null) {
-                throw new IllegalStateException("No ssh agent factory has been configured");
+            if (readyForAuth()) {
+                if (session.getFactoryManager().getAgentFactory() == null) {
+                    throw new IllegalStateException("No ssh agent factory has been configured");
+                }
+                userAuth = new UserAuthAgent(session, username);
+                processUserAuth(null);
             }
-            userAuth = new UserAuthAgent(session, username);
-            processUserAuth(null);
             return authFuture;
         }
     }
@@ -155,9 +162,10 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
     public AuthFuture authPassword(String username, String password) throws IOException {
         logger.debug("will try authentication with username/password");
         synchronized (sessionLock) {
-            waitForAuth();
-            userAuth = new UserAuthPassword(session, username, password);
-            processUserAuth(null);
+            if (readyForAuth()) {
+                userAuth = new UserAuthPassword(session, username, password);
+                processUserAuth(null);
+            }
             return authFuture;
         }
     }
@@ -165,9 +173,10 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
     public AuthFuture authPublicKey(String username, KeyPair key) throws IOException {
         logger.debug("will try authentication with public-key");
         synchronized (sessionLock) {
-            waitForAuth();
-            userAuth = new UserAuthPublicKey(session, username, key);
-            processUserAuth(null);
+            if (readyForAuth()) {
+                userAuth = new UserAuthPublicKey(session, username, key);
+                processUserAuth(null);
+            }
             return authFuture;
         }
     }

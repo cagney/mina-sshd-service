@@ -254,9 +254,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         final ConnectFuture connectFuture = new DefaultConnectFuture(null);
         connector.connect(address).addListener(new IoFutureListener<org.apache.mina.core.future.ConnectFuture>() {
             public void operationComplete(org.apache.mina.core.future.ConnectFuture future) {
-                if (future.isCanceled()) {
-                    connectFuture.cancel();
-                } else if (future.getException() != null) {
+                if (future.getException() != null) {
                     connectFuture.setException(future.getException());
                 } else {
                     ClientSessionImpl session = (ClientSessionImpl) AbstractSession.getSession(future.getSession());

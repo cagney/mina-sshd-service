@@ -31,9 +31,6 @@ import org.apache.mina.util.ExceptionMonitor;
  */
 public class DefaultSshFuture<T extends SshFuture> implements SshFuture<T> {
 
-    /** A default value to indicate the future has been canceled */
-    private static final Object CANCELED = new Object();
-
     /** A number of seconds to wait between two deadlock controls ( 5 seconds ) */
     private static final long DEAD_LOCK_CHECK_INTERVAL = 5000L;
 
@@ -340,13 +337,5 @@ public class DefaultSshFuture<T extends SshFuture> implements SshFuture<T> {
         } catch (Throwable t) {
             ExceptionMonitor.getInstance().exceptionCaught(t);
         }
-    }
-
-    public boolean isCanceled() {
-        return getValue() == CANCELED;
-    }
-
-    public void cancel() {
-        setValue(CANCELED);
     }
 }

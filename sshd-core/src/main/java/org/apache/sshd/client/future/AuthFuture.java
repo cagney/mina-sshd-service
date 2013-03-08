@@ -46,12 +46,6 @@ public interface AuthFuture extends SshFuture<AuthFuture> {
     boolean isFailure();
 
     /**
-     * Returns {@code true} if the connect operation has been canceled by
-     * {@link #cancel()} method.
-     */
-    boolean isCanceled();
-
-    /**
      * Notifies that the session has been authenticated.
      * This method is invoked by SSHD internally.  Please do not
      * call this method directly.
@@ -64,11 +58,4 @@ public interface AuthFuture extends SshFuture<AuthFuture> {
      * internally.  Please do not call this method directly.
      */
     void setException(Throwable exception);
-
-    /**
-     * Cancels the authentication attempt and notifies all threads waiting for
-     * this future.
-     */
-    void cancel();
-
 }

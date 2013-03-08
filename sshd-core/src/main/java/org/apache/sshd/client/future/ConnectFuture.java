@@ -44,12 +44,6 @@ public interface ConnectFuture extends SshFuture<ConnectFuture> {
     boolean isConnected();
 
     /**
-     * Returns {@code true} if the connect operation has been canceled by
-     * {@link #cancel()} method.
-     */
-    boolean isCanceled();
-
-    /**
      * Sets the newly connected session and notifies all threads waiting for
      * this future.  This method is invoked by SSHD internally.  Please do not
      * call this method directly.
@@ -62,11 +56,5 @@ public interface ConnectFuture extends SshFuture<ConnectFuture> {
      * internally.  Please do not call this method directly.
      */
     void setException(Throwable exception);
-
-    /**
-     * Cancels the connection attempt and notifies all threads waiting for
-     * this future.
-     */
-    void cancel();
 
 }

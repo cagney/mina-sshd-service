@@ -100,10 +100,6 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
             logger.debug("already authenticated");
             throw new IllegalStateException("Already authenticated");
         }
-        if (this.authFuture.isCanceled()) {
-            logger.debug("canceled");
-            throw new IllegalStateException("A user authentication request was canceled");
-        }
         if (this.authFuture.getException() != null) {
             logger.debug("probably closed", this.authFuture.getException());
             return false;

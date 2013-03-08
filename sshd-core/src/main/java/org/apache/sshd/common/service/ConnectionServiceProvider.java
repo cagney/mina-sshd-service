@@ -5,6 +5,8 @@ import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.x11.X11ForwardSupport;
 
+import java.util.Map;
+
 /**
  * Created with IntelliJ IDEA.
  * User: cagney
@@ -20,15 +22,15 @@ public class ConnectionServiceProvider extends ConnectionService<ServerSession> 
         }
         public ServiceProvider create(ServerSession session, Object sessionLock, boolean authenticated, String username) {
             if (authenticated) {
-                return new ConnectionServiceProvider(session, sessionLock);
+                return new ConnectionServiceProvider(session, sessionLock, GlobalRequest.defaults());
             } else {
                 return null;
             }
         }
     }
 
-    private ConnectionServiceProvider(ServerSession session, Object sessionLock) {
-        super(session, sessionLock, new AgentForwardSupport(session), new X11ForwardSupport(session));
+    public ConnectionServiceProvider(ServerSession session, Object sessionLock, Map<String,GlobalRequest> globalRequestMap) {
+        super(session, sessionLock, new AgentForwardSupport(session), new X11ForwardSupport(session), globalRequestMap);
     }
 
     public void start() {

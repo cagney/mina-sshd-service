@@ -1,6 +1,8 @@
 package org.apache.sshd.common.service;
 
+import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.session.AbstractSession;
+import org.apache.sshd.common.util.Buffer;
 import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +19,7 @@ public abstract class AbstractService<T extends AbstractSession> implements Serv
      * simultaneous to the service processing a timer and trying to inject a message.
      */
     protected Object sessionLock;
-    protected T session;
+    protected final T session;
     private final String name;
 
     protected AbstractService(String name, T session, Object sessionLock) {
@@ -28,6 +30,14 @@ public abstract class AbstractService<T extends AbstractSession> implements Serv
 
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * Return the service's session.
+     * @return the session
+     */
+    public T getSession() {
+        return session;
     }
 
 }

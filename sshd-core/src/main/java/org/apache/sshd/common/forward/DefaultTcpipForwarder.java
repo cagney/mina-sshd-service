@@ -30,6 +30,8 @@ import org.apache.sshd.common.SshdSocketAddress;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.*;
 import org.apache.sshd.common.future.SshFutureListener;
+import org.apache.sshd.common.service.ConnectionService;
+import org.apache.sshd.common.service.GlobalRequest;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
@@ -83,12 +85,7 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
     }
 
     public synchronized SshdSocketAddress startRemotePortForwarding(SshdSocketAddress remote, SshdSocketAddress local) throws Exception {
-        Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_GLOBAL_REQUEST, 0);
-        buffer.putString("tcpip-forward");
-        buffer.putBoolean(true);
-        buffer.putString(remote.getHostName());
-        buffer.putInt(remote.getPort());
-        Buffer result = session.request(buffer);
+        Buffer result = TcpipForwardRequest.request(session, remote, local);
         if (result == null) {
             throw new SshException("Tcpip forwarding request denied by server");
         }
@@ -100,12 +97,7 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
 
     public synchronized void stopRemotePortForwarding(SshdSocketAddress remote) throws Exception {
         if (remoteToLocal.remove(remote.getPort()) != null) {
-            Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_GLOBAL_REQUEST, 0);
-            buffer.putString("cancel-tcpip-forward");
-            buffer.putBoolean(false);
-            buffer.putString(remote.getHostName());
-            buffer.putInt(remote.getPort());
-            session.writePacket(buffer);
+            CancelTcpipForwardRequest.request(session, remote);
         }
     }
 

@@ -7,6 +7,7 @@ import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,8 +19,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl> implements ServiceClient {
 
-    public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock, CloseFuture closeFuture) {
-        super(session, sessionLock, null, null);
+    public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock, CloseFuture closeFuture,
+                                   Map <String,GlobalRequest> globalRequestMap) {
+        super(session, sessionLock, null, null, globalRequestMap);
     }
 
     public void serverAcceptedService() {

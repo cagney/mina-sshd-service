@@ -7,7 +7,6 @@ import org.apache.sshd.common.Channel;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
-import org.apache.sshd.common.SshdSocketAddress;
 import org.apache.sshd.common.TcpipForwarder;
 import org.apache.sshd.common.future.SshFuture;
 import org.apache.sshd.common.future.SshFutureListener;
@@ -47,12 +46,15 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
     private AgentForwardSupport agentForward;
     private X11ForwardSupport x11Forward;
+    private final Map<String,GlobalRequest> globalRequestMap;
 
-    protected ConnectionService(T session, Object sessionLock, AgentForwardSupport agentForward, X11ForwardSupport x11Forward) {
+    protected ConnectionService(T session, Object sessionLock, AgentForwardSupport agentForward,
+                                X11ForwardSupport x11Forward, Map<String,GlobalRequest> globalRequestMap) {
         super(SERVICE_NAME, session, sessionLock);
         this.agentForward = agentForward;
         this.x11Forward = x11Forward;
         this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(session);
+        this.globalRequestMap = globalRequestMap;
     }
 
     public void close(final boolean immediately) {
@@ -128,7 +130,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
                 channelClose(buffer);
                 break;
             case SSH_MSG_GLOBAL_REQUEST:
-                globalRequest(buffer);
+                processGlobalRequest(buffer);
                 break;
         }
     }
@@ -204,43 +206,19 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
         });
     }
 
-    private void globalRequest(Buffer request) throws Exception {
-        String req = request.getString();
-        boolean wantReply = request.getBoolean();
-        if (req.startsWith("keepalive@")) {
-            // Relatively standard KeepAlive directive, just wants failure
-        } else if (req.equals("no-more-sessions@openssh.com")) {
-            allowMoreSessions = false;
-        } else if (req.equals("tcpip-forward")) {
-            String address = request.getString();
-            int port = request.getInt();
-            try {
-                SshdSocketAddress bound = session.getTcpipForwarder().localPortForwardingRequested(new SshdSocketAddress(address, port));
-                port = bound.getPort();
-                if (wantReply){
-                    Buffer response = session.createBuffer(SshConstants.Message.SSH_MSG_REQUEST_SUCCESS, 0);
-                    response.putInt(port);
-                    session.writePacket(response);
-                }
-            } catch (Exception e) {
-                if (wantReply) {
-                    Buffer response = session.createBuffer(SshConstants.Message.SSH_MSG_REQUEST_FAILURE, 0);
-                    session.writePacket(response);
-                }
-            }
-            return;
-        } else if (req.equals("cancel-tcpip-forward")) {
-            String address = request.getString();
-            int port = request.getInt();
-            session.getTcpipForwarder().localPortForwardingCancelled(new SshdSocketAddress(address, port));
-            if (wantReply){
-                Buffer response = session.createBuffer(SshConstants.Message.SSH_MSG_REQUEST_SUCCESS, 0);
-                session.writePacket(response);
-            }
-            return;
+    private void processGlobalRequest(Buffer buffer) throws Exception {
+        String request = buffer.getString();
+        boolean wantReply = buffer.getBoolean();
+        logger.debug("Received SSH_MSG_GLOBAL_REQUEST {}", request);
+        if (request.startsWith("keepalive@")) {
+            // want error response
         } else {
-            logger.debug("Received SSH_MSG_GLOBAL_REQUEST {}", req);
-            logger.warn("Unknown global request: {}", req);
+            GlobalRequest globalRequest = globalRequestMap.get(request);
+            if (globalRequest != null) {
+                globalRequest.process(this, request, wantReply, buffer);
+                return;
+            }
+            logger.warn("Unknown global request: {}", request);
         }
         if (wantReply) {
             Buffer response = session.createBuffer(SshConstants.Message.SSH_MSG_REQUEST_FAILURE, 0);
@@ -433,5 +411,9 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
             requestResult.set(null);
             requestResult.notify();
         }
+    }
+
+    public void setAllowMoreSessions(boolean allowMoreSessions) {
+        this.allowMoreSessions = allowMoreSessions;
     }
 }

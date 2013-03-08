@@ -26,6 +26,7 @@ import org.apache.sshd.client.SessionFactory;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.session.ClientSessionImpl;
 import org.apache.sshd.common.SshConstants;
+import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.server.command.ScpCommandFactory;
 import org.apache.sshd.util.BogusPasswordAuthenticator;
@@ -100,9 +101,9 @@ public class ServerTest {
 
         client = SshClient.setUpDefaultClient();
         client.start();
-        ClientSession s = client.connect("localhost", port).await().getSession();
-        int res = s.waitFor(ClientSession.CLOSED, 5000);
-        Assert.assertTrue((res & ClientSession.CLOSED) != 0);
+        CloseFuture closeFuture = client.connect("localhost", port).await().getSession().getCloseFuture();
+        closeFuture.await(5000);
+        Assert.assertTrue(closeFuture.isClosed());
     }
 
     @Test

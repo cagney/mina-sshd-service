@@ -1020,6 +1020,13 @@ public abstract class AbstractSession<S extends Service> implements Session {
     /**
      * {@inheritDoc}
      */
+    public CloseFuture getCloseFuture() {
+        return this.closeFuture;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public TcpipForwarder getTcpipForwarder() {
         return findService(ConnectionService.class).getTcpipForwarder();
     }

@@ -21,6 +21,7 @@ package org.apache.sshd.common;
 import java.io.IOException;
 
 import org.apache.mina.core.future.WriteFuture;
+import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.util.Buffer;
 
 /**
@@ -154,6 +155,11 @@ public interface Session {
      * @param listener the session listener to remove
      */
     void removeListener(SessionListener listener);
+
+    /**
+     * Return the Future triggered when the session closes.
+     */
+    CloseFuture getCloseFuture();
 
     /**
      * Retrieve the tcpip forwarder

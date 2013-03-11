@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl> implements ServiceClient {
 
-    public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock, CloseFuture closeFuture,
+    public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock,
                                    Map <String,GlobalRequest> globalRequestMap) {
         super(session, sessionLock, null, null, globalRequestMap);
     }

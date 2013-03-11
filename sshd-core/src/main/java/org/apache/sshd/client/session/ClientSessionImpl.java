@@ -66,7 +66,7 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
         // Need to set the initial service early as calling code likes to start trying to
         // manipulate it before the connection has even been established.  For instance, to
         // set the authPassword.
-        this.pendingServices = client.getServiceClientsFactory().create(this, lock, closeFuture);
+        this.pendingServices = client.getServiceClientsFactory().create(this, lock);
         sendClientIdentification();
         sendKexInit();
     }

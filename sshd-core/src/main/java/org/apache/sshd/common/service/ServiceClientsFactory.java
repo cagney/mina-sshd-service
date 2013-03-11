@@ -21,9 +21,8 @@ public abstract class ServiceClientsFactory {
      * Presumably the first is UserAuthService followed by ConnectionService
      * @param session
      * @param sessionLock
-     * @param closeFuture
      * @return
      */
-    public abstract LinkedList<ServiceClient> create(ClientSessionImpl session, Object sessionLock, CloseFuture closeFuture);
+    public abstract LinkedList<ServiceClient> create(ClientSessionImpl session, Object sessionLock);
 
 }

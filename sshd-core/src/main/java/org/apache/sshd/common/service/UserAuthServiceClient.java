@@ -25,7 +25,6 @@ import java.security.KeyPair;
 public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> implements ServiceClient {
 
     private UserAuth userAuth;
-    private final CloseFuture closeFuture;
 
     /**
      * The AuthFuture that is being used by the current auth request.  This encodes the state.
@@ -35,9 +34,8 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
 
 
 
-    public UserAuthServiceClient(ClientSessionImpl session, Object sessionLock, CloseFuture closeFuture) {
+    public UserAuthServiceClient(ClientSessionImpl session, Object sessionLock) {
         super(session, sessionLock);
-        this.closeFuture = closeFuture;
         // start with a failed auth future?
         this.authFuture = new DefaultAuthFuture(sessionLock);
         logger.debug("created");

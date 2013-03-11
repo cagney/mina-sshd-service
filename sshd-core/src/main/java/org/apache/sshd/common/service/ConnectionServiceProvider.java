@@ -1,7 +1,6 @@
 package org.apache.sshd.common.service;
 
 import org.apache.sshd.agent.common.AgentForwardSupport;
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.x11.X11ForwardSupport;
 
@@ -16,20 +15,7 @@ import java.util.Map;
  */
 public class ConnectionServiceProvider extends ConnectionService<ServerSession> implements ServiceProvider {
 
-    public static class Factory extends ServiceProviderFactory {
-        public Factory() {
-           super(SERVICE_NAME);
-        }
-        public ServiceProvider create(ServerSession session, Object sessionLock, boolean authenticated, String username) {
-            if (authenticated) {
-                return new ConnectionServiceProvider(session, sessionLock, GlobalRequest.defaults());
-            } else {
-                return null;
-            }
-        }
-    }
-
-    public ConnectionServiceProvider(ServerSession session, Object sessionLock, Map<String,GlobalRequest> globalRequestMap) {
+    ConnectionServiceProvider(ServerSession session, Object sessionLock, Map<String,GlobalRequest> globalRequestMap) {
         super(session, sessionLock, new AgentForwardSupport(session), new X11ForwardSupport(session), globalRequestMap);
     }
 

@@ -28,21 +28,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class UserAuthServiceProvider extends UserAuthService<ServerSession> implements ServiceProvider {
 
-    public static class Factory extends ServiceProviderFactory {
-        public Factory() {
-            super(SERVICE_NAME);
-        }
-
-        public ServiceProvider create(ServerSession session, Object sessionLock, boolean authenticated, String username) {
-            if (authenticated) {
-                return null;
-            } else {
-                return new UserAuthServiceProvider(session, sessionLock);
-            }
-        }
-    }
-
-    private UserAuthServiceProvider(ServerSession session, Object sessionLock) {
+    UserAuthServiceProvider(ServerSession session, Object sessionLock) {
         super(session, sessionLock);
         logger.debug("Accepting user authentication request");
         maxAuthRequests = session.getIntProperty(ServerFactoryManager.MAX_AUTH_REQUESTS, maxAuthRequests);

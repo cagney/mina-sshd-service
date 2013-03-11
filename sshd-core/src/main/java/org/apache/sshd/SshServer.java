@@ -60,8 +60,9 @@ import org.apache.sshd.common.mac.HMACSHA196;
 import org.apache.sshd.common.random.BouncyCastleRandom;
 import org.apache.sshd.common.random.JceRandom;
 import org.apache.sshd.common.random.SingletonRandomFactory;
-import org.apache.sshd.common.service.ServiceProvider;
+import org.apache.sshd.common.service.ConnectionServiceProviderFactory;
 import org.apache.sshd.common.service.ServiceProviderFactory;
+import org.apache.sshd.common.service.UserAuthServiceProviderFactory;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.common.signature.SignatureDSA;
 import org.apache.sshd.common.signature.SignatureRSA;
@@ -69,14 +70,12 @@ import org.apache.sshd.common.util.OsUtils;
 import org.apache.sshd.common.util.SecurityUtils;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
-import org.apache.sshd.common.service.ConnectionServiceProvider;
 import org.apache.sshd.server.FileSystemFactory;
 import org.apache.sshd.common.ForwardingFilter;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.ServerFactoryManager;
 import org.apache.sshd.server.UserAuth;
-import org.apache.sshd.common.service.UserAuthServiceProvider;
 import org.apache.sshd.server.auth.UserAuthPassword;
 import org.apache.sshd.server.auth.UserAuthPublicKey;
 import org.apache.sshd.server.auth.gss.GSSAuthenticator;
@@ -494,8 +493,8 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
                 new SignatureRSA.Factory()));
         sshd.setFileSystemFactory(new NativeFileSystemFactory());
         sshd.setServiceServerFactories(ServiceProviderFactory.asList(
-                new UserAuthServiceProvider.Factory(),
-                new ConnectionServiceProvider.Factory()));
+                new UserAuthServiceProviderFactory(),
+                new ConnectionServiceProviderFactory()));
 
         sshd.setTcpipForwarderFactory(new DefaultTcpipForwarderFactory());
         ForwardingAcceptorFactory faf = new DefaultForwardingAcceptorFactory();

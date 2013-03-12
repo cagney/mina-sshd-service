@@ -40,7 +40,7 @@ public class UserAuthPassword implements UserAuth {
         }
     }
 
-    public Boolean auth(ServerSession session, String username, Buffer buffer) throws Exception {
+    public Boolean auth(ServerSession session, String serviceName, String username, Buffer buffer) throws Exception {
         boolean newPassword = buffer.getBoolean();
         if (newPassword) {
             throw new IllegalStateException("Password changes are not supported");

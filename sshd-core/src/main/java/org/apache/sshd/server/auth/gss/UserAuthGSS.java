@@ -18,6 +18,7 @@
  */
 package org.apache.sshd.server.auth.gss;
 
+import org.apache.sshd.client.auth.AbstractUserAuth;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.util.Buffer;
@@ -90,10 +91,11 @@ public class UserAuthGSS implements HandshakingUserAuth {
    * @throws Exception If something went wrong
    */
   
-  public Boolean auth(ServerSession sess, String user, Buffer buff) throws Exception {
+  public Boolean auth(ServerSession sess, String serviceName, String user, Buffer buff) throws Exception {
     GSSAuthenticator auth = getAuthenticator(sess);
     
     this.user = user;
+    this.service = serviceName;
 
     // Get mechanism count from buffer and look for Kerberos 5.
     
@@ -135,16 +137,6 @@ public class UserAuthGSS implements HandshakingUserAuth {
     // No matching mechanism found
     
     return Boolean.FALSE;
-  }
-  
-  /**
-   * Set the service name from the original request.  This may be required for MIC verification later.
-   * 
-   * @param service The service name
-   */
-  
-  public void setServiceName(String service) {
-    this.service = service;
   }
   
   /**

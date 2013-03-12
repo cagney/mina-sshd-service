@@ -61,6 +61,8 @@ import org.apache.sshd.server.channel.OpenChannelException;
  */
 public class ClientSessionImpl extends AbstractSession implements ClientSession {
 
+    private static final String AUTHENTICATED_SERVICE_NAME = "ssh-connection";
+
     private UserAuth userAuth;
 
     /**
@@ -167,7 +169,7 @@ public class ClientSessionImpl extends AbstractSession implements ClientSession 
                 if (this.getFactoryManager().getAgentFactory() == null) {
                     throw new IllegalStateException("No ssh agent factory has been configured");
                 }
-                userAuth = new UserAuthAgent(this, username);
+                userAuth = new UserAuthAgent(this, AUTHENTICATED_SERVICE_NAME, username);
                 processUserAuth(null);
             }
             return authFuture;
@@ -178,7 +180,7 @@ public class ClientSessionImpl extends AbstractSession implements ClientSession 
         log.debug("will try authentication with username/password");
         synchronized (lock) {
             if (readyForAuth()) {
-                userAuth = new UserAuthPassword(this, username, password);
+                userAuth = new UserAuthPassword(this, AUTHENTICATED_SERVICE_NAME, username, password);
                 processUserAuth(null);
             }
             return authFuture;
@@ -189,7 +191,7 @@ public class ClientSessionImpl extends AbstractSession implements ClientSession 
         log.debug("will try authentication with public-key");
         synchronized (lock) {
             if (readyForAuth()) {
-                userAuth = new UserAuthPublicKey(this, username, key);
+                userAuth = new UserAuthPublicKey(this, AUTHENTICATED_SERVICE_NAME, username, key);
                 processUserAuth(null);
             }
             return authFuture;

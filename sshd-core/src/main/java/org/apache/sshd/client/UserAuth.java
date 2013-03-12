@@ -37,6 +37,8 @@ public interface UserAuth {
 
     String getUsername();
 
+    String getServiceName();
+
     Result next(Buffer buffer) throws IOException;
 
 }

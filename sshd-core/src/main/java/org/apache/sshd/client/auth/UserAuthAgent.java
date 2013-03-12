@@ -35,18 +35,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Authentication delegating to an SSH agent
  */
-public class UserAuthAgent implements UserAuth {
+public class UserAuthAgent extends AbstractUserAuth implements UserAuth {
 
-    protected final Logger log = LoggerFactory.getLogger(getClass());
-
-    private final ClientSessionImpl session;
-    private final String username;
     private final SshAgent agent;
     private final Iterator<SshAgent.Pair<PublicKey, String>> keys;
 
-    public UserAuthAgent(ClientSessionImpl session, String username) throws IOException {
-        this.session = session;
-        this.username = username;
+    public UserAuthAgent(ClientSessionImpl session, String serviceName, String username) throws IOException {
+        super(session, serviceName, username);
         this.agent = session.getFactoryManager().getAgentFactory().createClient(session);
         this.keys = agent.getIdentities().iterator();
     }
@@ -57,11 +52,11 @@ public class UserAuthAgent implements UserAuth {
 
     protected void sendNextKey(PublicKey key) throws IOException {
         try {
-            log.info("Send SSH_MSG_USERAUTH_REQUEST for publickey");
+            log.info("Send SSH_MSG_USERAUTH_REQUEST for publickey and service {}", serviceName);
             Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST, 0);
             int pos1 = buffer.wpos() - 1;
             buffer.putString(username);
-            buffer.putString("ssh-connection");
+            buffer.putString(serviceName);
             buffer.putString("publickey");
             buffer.putByte((byte) 1);
             buffer.putString((key instanceof RSAPublicKey) ? KeyPairProvider.SSH_RSA : KeyPairProvider.SSH_DSS);
@@ -73,7 +68,7 @@ public class UserAuthAgent implements UserAuth {
             bs.putString(session.getKex().getH());
             bs.putCommand(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST);
             bs.putString(username);
-            bs.putString("ssh-connection");
+            bs.putString(serviceName);
             bs.putString("publickey");
             bs.putByte((byte) 1);
             bs.putString((key instanceof RSAPublicKey) ? KeyPairProvider.SSH_RSA : KeyPairProvider.SSH_DSS);

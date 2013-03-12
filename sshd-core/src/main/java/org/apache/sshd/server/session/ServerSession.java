@@ -372,26 +372,24 @@ public class ServerSession extends AbstractSession {
 
             if (cmd == SshConstants.Message.SSH_MSG_USERAUTH_REQUEST) {
               username = buffer.getString();
-              
-              String svcName = buffer.getString();
+
+              String serviceName = buffer.getString();
               String method = buffer.getString();
-              
-              log.debug("Authenticating user '{}' with method '{}'", username, method);
+
+              if (log.isDebugEnabled()) {
+                log.debug("User '{}' authenticating service '{}' with method '{}'", new Object[] { username, serviceName, method });
+              }
               NamedFactory<UserAuth> factory = NamedFactory.Utils.get(userAuthFactories, method);
               if (factory != null) {
                 UserAuth auth = factory.create();
                 try {
-                  authed = auth.auth(this, username, buffer);
+                  authed = auth.auth(this, serviceName, username, buffer);
                   if (authed == null) {
                     // authentication is still ongoing
                     log.debug("Authentication not finished");
                     
                     if (auth instanceof HandshakingUserAuth) {
                       currentAuth = (HandshakingUserAuth) auth;
-                      
-                      // GSSAPI needs the user name and service to verify the MIC
-                      
-                      currentAuth.setServiceName(svcName);
                     }
                     return;
                   } else {

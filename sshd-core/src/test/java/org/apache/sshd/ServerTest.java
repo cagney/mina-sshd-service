@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.sshd.client.SessionFactory;
+import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.session.ClientSessionImpl;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.session.AbstractSession;
@@ -75,7 +76,7 @@ public class ServerTest {
      * @throws Exception
      */
     @Test
-    public void testFailAuthentication() throws Exception {
+    public void testFailAuthenticationWithWaitFor() throws Exception {
         sshd.getProperties().put(SshServer.MAX_AUTH_REQUESTS, "10");
 
         client = SshClient.setUpDefaultClient();
@@ -91,6 +92,31 @@ public class ServerTest {
                 throw new TimeoutException();
             }
         }
+        Assert.assertTrue(nbTrials > 10);
+    }
+
+    /**
+     * Send bad password.  The server should disconnect after a few attempts
+     * @throws Exception
+     */
+    @Test
+    public void testFailAuthenticationWithAuthFuture() throws Exception {
+        sshd.getProperties().put(SshServer.MAX_AUTH_REQUESTS, "10");
+
+        client = SshClient.setUpDefaultClient();
+        client.start();
+        ClientSession s = client.connect("localhost", port).await().getSession();
+        int nbTrials = 0;
+        AuthFuture authFuture;
+        do {
+            nbTrials ++;
+            Assert.assertTrue(nbTrials < 100);
+            authFuture = s.authPassword("smx", "buggy");
+            Assert.assertTrue(authFuture.await(5000));
+            Assert.assertTrue(authFuture.isDone());
+            Assert.assertFalse(authFuture.isSuccess());
+        } while (authFuture.isFailure());
+        Assert.assertNotNull(authFuture.getException());
         Assert.assertTrue(nbTrials > 10);
     }
 

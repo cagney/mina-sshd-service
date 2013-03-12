@@ -29,15 +29,7 @@ import org.apache.sshd.server.session.ServerSession;
  */
 
 public interface HandshakingUserAuth extends UserAuth {
-  
-  /**
-   * Set the service name from the original request.  This may be required for MIC verification later.
-   * 
-   * @param service The service name
-   */
-  
-  void setServiceName(String service);
-  
+
   /**
    * Check whether a particular message is handled here.
    * 

@@ -90,10 +90,11 @@ public class UserAuthGSS implements HandshakingUserAuth {
    * @throws Exception If something went wrong
    */
   
-  public Boolean auth(ServerSession sess, String user, Buffer buff) throws Exception {
+  public Boolean auth(ServerSession sess, String user, String service, Buffer buff) throws Exception {
     GSSAuthenticator auth = getAuthenticator(sess);
     
     this.user = user;
+    this.service = service;
 
     // Get mechanism count from buffer and look for Kerberos 5.
     
@@ -136,17 +137,7 @@ public class UserAuthGSS implements HandshakingUserAuth {
     
     return Boolean.FALSE;
   }
-  
-  /**
-   * Set the service name from the original request.  This may be required for MIC verification later.
-   * 
-   * @param service The service name
-   */
-  
-  public void setServiceName(String service) {
-    this.service = service;
-  }
-  
+
   /**
    * Check whether a particular message is handled here.
    * 

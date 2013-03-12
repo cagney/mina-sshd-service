@@ -52,10 +52,11 @@ public class UserAuthPassword implements UserAuth {
 
     public Result next(Buffer buffer) throws IOException {
         if (buffer == null) {
-            log.info("Send SSH_MSG_USERAUTH_REQUEST for password");
+            String serviceName = session.getNextService().getName();
+            log.info("Send SSH_MSG_USERAUTH_REQUEST for password and service {}", serviceName);
             buffer = session.createBuffer(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST, 0);
             buffer.putString(username);
-            buffer.putString("ssh-connection");
+            buffer.putString(serviceName);
             buffer.putString("password");
             buffer.putByte((byte) 0);
             buffer.putString(password);

@@ -57,11 +57,12 @@ public class UserAuthAgent implements UserAuth {
 
     protected void sendNextKey(PublicKey key) throws IOException {
         try {
-            log.info("Send SSH_MSG_USERAUTH_REQUEST for publickey");
+            String serviceName = session.getNextService().getName();
+            log.info("Send SSH_MSG_USERAUTH_REQUEST for publickey and service {}", serviceName);
             Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST, 0);
             int pos1 = buffer.wpos() - 1;
             buffer.putString(username);
-            buffer.putString("ssh-connection");
+            buffer.putString(serviceName);
             buffer.putString("publickey");
             buffer.putByte((byte) 1);
             buffer.putString((key instanceof RSAPublicKey) ? KeyPairProvider.SSH_RSA : KeyPairProvider.SSH_DSS);
@@ -73,7 +74,7 @@ public class UserAuthAgent implements UserAuth {
             bs.putString(session.getKex().getH());
             bs.putCommand(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST);
             bs.putString(username);
-            bs.putString("ssh-connection");
+            bs.putString(serviceName);
             bs.putString("publickey");
             bs.putByte((byte) 1);
             bs.putString((key instanceof RSAPublicKey) ? KeyPairProvider.SSH_RSA : KeyPairProvider.SSH_DSS);

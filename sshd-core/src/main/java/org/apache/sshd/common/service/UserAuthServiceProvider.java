@@ -68,18 +68,18 @@ public class UserAuthServiceProvider extends UserAuthService<ServerSession> impl
                 // currentAuth == null?
                 String method = request.getString();
 
-                logger.debug("Authenticating user '{}' with method '{}'", currentUsername, method);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Authenticating user '{}' with method '{}' and service '{}'", new Object[] {currentUsername, method, currentServiceName});
+                }
                 NamedFactory<UserAuth> factory = NamedFactory.Utils.get(userAuthFactories, method);
                 if (factory != null) {
                     UserAuth auth = factory.create();
                     try {
-                        authed = auth.auth(this.session, currentUsername, request);
+                        authed = auth.auth(this.session, currentUsername, currentServiceName, request);
                         if (authed == null) {
                             // authentication is still ongoing
                             logger.debug("Authentication not finished");
                             currentAuth = (HandshakingUserAuth) auth;
-                            // GSSAPI needs the user name and service to verify the MIC
-                            currentAuth.setServiceName(currentServiceName);
                             return;
                         } else {
                             logger.debug(authed ? "Authentication succeeded" : "Authentication failed");

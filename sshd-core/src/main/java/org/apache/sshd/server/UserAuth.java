@@ -37,11 +37,12 @@ public interface UserAuth {
      *
      * @param session the current ssh session
      * @param username the user trying to log in
+     * @param service the user is requesting
      * @param buffer the request buffer containing parameters specific to this request
      * @return <code>true</code> if the authentication succeeded, <code>false</code> if the authentication
      *          is not finished yet
      * @throws Exception if the authentication fails
      */
-    Boolean auth(ServerSession session, String username, Buffer buffer) throws Exception;
+    Boolean auth(ServerSession session, String username, String service, Buffer buffer) throws Exception;
 
 }

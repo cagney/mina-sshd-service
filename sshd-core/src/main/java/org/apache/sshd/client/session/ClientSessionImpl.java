@@ -46,6 +46,7 @@ import org.apache.sshd.common.service.ServiceClientsFactory;
 import org.apache.sshd.common.service.UserAuthServiceClient;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.common.util.Buffer;
+import sun.misc.Signal;
 
 /**
  * TODO Add javadoc
@@ -307,4 +308,9 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
         }
     }
 
+    public ServiceClient getNextService() {
+        synchronized (lock) {
+            return pendingServices.peek();
+        }
+    }
 }

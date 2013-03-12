@@ -19,9 +19,25 @@ import java.util.concurrent.TimeUnit;
  */
 public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl> implements ServiceClient {
 
-    public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock,
-                                   Map <String,GlobalRequest> globalRequestMap) {
-        super(session, sessionLock, null, null, globalRequestMap);
+    /**
+     * Implement the official ssh-connection protocol.
+     * @param session
+     * @param sessionLock
+     */
+    public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock) {
+        this(SERVICE_NAME, session, sessionLock, GlobalRequest.defaults());
+    }
+
+    /**
+     * Implement a custom ssh-connection like protocol.
+     * @param serviceName
+     * @param session
+     * @param sessionLock
+     * @param globalRequestMap
+     */
+    protected ConnectionServiceClient(String serviceName, ClientSessionImpl session, Object sessionLock,
+                                    Map <String,GlobalRequest> globalRequestMap) {
+        super(serviceName, session, sessionLock, null, null, globalRequestMap);
     }
 
     public void serverAcceptedService() {

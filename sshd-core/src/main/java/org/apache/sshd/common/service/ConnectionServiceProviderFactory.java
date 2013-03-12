@@ -15,7 +15,7 @@ public class ConnectionServiceProviderFactory extends ServiceProviderFactory {
     }
     public ServiceProvider create(ServerSession session, Object sessionLock, boolean authenticated, String username) {
         if (authenticated) {
-            return new ConnectionServiceProvider(session, sessionLock, GlobalRequest.defaults());
+            return new ConnectionServiceProvider(session, sessionLock);
         } else {
             return null;
         }

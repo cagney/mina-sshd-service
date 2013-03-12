@@ -48,9 +48,9 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
     private X11ForwardSupport x11Forward;
     private final Map<String,GlobalRequest> globalRequestMap;
 
-    protected ConnectionService(T session, Object sessionLock, AgentForwardSupport agentForward,
+    protected ConnectionService(String serviceName, T session, Object sessionLock, AgentForwardSupport agentForward,
                                 X11ForwardSupport x11Forward, Map<String,GlobalRequest> globalRequestMap) {
-        super(SERVICE_NAME, session, sessionLock);
+        super(serviceName, session, sessionLock);
         this.agentForward = agentForward;
         this.x11Forward = x11Forward;
         this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(session);

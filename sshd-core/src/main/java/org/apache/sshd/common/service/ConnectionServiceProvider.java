@@ -15,8 +15,28 @@ import java.util.Map;
  */
 public class ConnectionServiceProvider extends ConnectionService<ServerSession> implements ServiceProvider {
 
-    ConnectionServiceProvider(ServerSession session, Object sessionLock, Map<String,GlobalRequest> globalRequestMap) {
-        super(session, sessionLock, new AgentForwardSupport(session), new X11ForwardSupport(session), globalRequestMap);
+    /**
+     * Implement the official ssh-connection protocol.
+     * @param session
+     * @param sessionLock
+     */
+    ConnectionServiceProvider(ServerSession session, Object sessionLock) {
+        this(SERVICE_NAME, session, sessionLock, new AgentForwardSupport(session), new X11ForwardSupport(session), GlobalRequest.defaults());
+    }
+
+    /**
+     * Implement a custom ssh-connection like protocol.
+     * @param serviceName
+     * @param session
+     * @param sessionLock
+     * @param agentForwardSupport
+     * @param x11ForwardSupport
+     * @param globalRequestMap
+     */
+    protected ConnectionServiceProvider(String serviceName, ServerSession session, Object sessionLock,
+                                        AgentForwardSupport agentForwardSupport, X11ForwardSupport x11ForwardSupport,
+                                        Map<String,GlobalRequest> globalRequestMap) {
+        super(serviceName, session, sessionLock, agentForwardSupport, x11ForwardSupport, globalRequestMap);
     }
 
     public void start() {

@@ -16,6 +16,6 @@ public class DefaultServiceClientsFactory extends ServiceClientsFactory {
     @Override
     public LinkedList<ServiceClient> create(ClientSessionImpl session, Object sessionLock) {
         return ServiceFactory.<ServiceClient>asList(new UserAuthServiceClient(session, sessionLock),
-                new ConnectionServiceClient(session, sessionLock, GlobalRequest.defaults()));
+                new ConnectionServiceClient(session, sessionLock));
     }
 }

@@ -30,6 +30,9 @@ import org.apache.sshd.ClientChannel;
 import org.apache.sshd.ClientSession;
 import org.apache.sshd.client.ClientFactoryManager;
 import org.apache.sshd.client.ServerKeyVerifier;
+import org.apache.sshd.client.auth.UserAuthAgent;
+import org.apache.sshd.client.auth.UserAuthPassword;
+import org.apache.sshd.client.auth.UserAuthPublicKey;
 import org.apache.sshd.common.SshdSocketAddress;
 import org.apache.sshd.client.channel.ChannelDirectTcpip;
 import org.apache.sshd.client.channel.ChannelExec;
@@ -42,11 +45,9 @@ import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.service.ServiceClient;
-import org.apache.sshd.common.service.ServiceClientsFactory;
 import org.apache.sshd.common.service.UserAuthServiceClient;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.common.util.Buffer;
-import sun.misc.Signal;
 
 /**
  * TODO Add javadoc
@@ -68,6 +69,8 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
         // manipulate it before the connection has even been established.  For instance, to
         // set the authPassword.
         this.pendingServices = client.getServiceClientsFactory().create(this, lock);
+        // install the initial service
+        this.currentService = this.pendingServices.pollFirst();
         sendClientIdentification();
         sendKexInit();
     }
@@ -82,19 +85,19 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
 
     public AuthFuture authAgent(String username) throws IOException {
         synchronized (lock) {
-            return findService(UserAuthServiceClient.class).authAgent(username);
+            return findService(UserAuthServiceClient.class).auth(new UserAuthAgent(this, this.pendingServices.peekFirst(), username));
         }
     }
 
     public AuthFuture authPassword(String username, String password) throws IOException {
         synchronized (lock) {
-            return findService(UserAuthServiceClient.class).authPassword(username, password);
+            return findService(UserAuthServiceClient.class).auth(new UserAuthPassword(this, this.pendingServices.peekFirst(), username, password));
         }
     }
 
     public AuthFuture authPublicKey(String username, KeyPair key) throws IOException {
         synchronized (lock) {
-            return findService(UserAuthServiceClient.class).authPublicKey(username, key);
+            return findService(UserAuthServiceClient.class).auth(new UserAuthPublicKey(this, this.pendingServices.peekFirst(), username, key));
         }
     }
 
@@ -214,11 +217,16 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
                         }
                         log.info("Received SSH_MSG_NEWKEYS");
                         receiveNewKeys(false);
-                        log.info("Send SSH_MSG_SERVICE_REQUEST for {}", pendingServices.peek().getName());
+                        log.info("Send SSH_MSG_SERVICE_REQUEST for {}", this.currentService.getName());
                         Buffer request = createBuffer(SshConstants.Message.SSH_MSG_SERVICE_REQUEST, 0);
-                        request.putString(pendingServices.peek().getName());
+                        request.putString(this.currentService.getName());
                         writePacket(request);
                         setState(State.ServiceRequestSent);
+                        // Assuming that MINA-SSHD only implements "explicit server authentication" it is permissible
+                        // for the client's service to start sending data before the service-accept has been received.
+                        // If "implicit authentication" were to ever be supported, then this would need to be
+                        // called after service-accept comes back.  See SSH-TRANSPORT.
+                        this.currentService.start();
                         break;
                     case ServiceRequestSent:
                         if (cmd != SshConstants.Message.SSH_MSG_SERVICE_ACCEPT) {
@@ -226,7 +234,6 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
                             return;
                         }
                         setState(State.Running);
-                        switchToNextService(false, null);
                         break;
                     case Running:
                         currentService.process(cmd, buffer);
@@ -244,13 +251,11 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
         }
     }
 
-    public void switchToNextService(boolean authenticated, String username) {
+    public void switchToService(boolean authenticated, String username, ServiceClient service) {
         this.authed = authenticated;
         this.username = username;
-        // get the next service off the queue
-        ServiceClient nextService = pendingServices.poll();
-        this.currentService = nextService;
-        nextService.serverAcceptedService();
+        this.currentService = service;
+        service.start();
     }
 
     protected boolean readIdentification(Buffer buffer) throws IOException {
@@ -305,12 +310,6 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
             }
             log.warn("Attempted to access unknown service {}", target.getSimpleName());
             return null;
-        }
-    }
-
-    public ServiceClient getNextService() {
-        synchronized (lock) {
-            return pendingServices.peek();
         }
     }
 }

@@ -46,7 +46,7 @@ public class UserAuthPublicKey implements UserAuth {
         }
     }
 
-    public Boolean auth(ServerSession session, String username, String service, Buffer buffer) throws Exception {
+    public Boolean auth(ServerSession session, String serviceName, String username, Buffer buffer) throws Exception {
         boolean hasSig = buffer.getBoolean();
         String alg = buffer.getString();
 
@@ -82,7 +82,7 @@ public class UserAuthPublicKey implements UserAuth {
             buf.putString(session.getKex().getH());
             buf.putCommand(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST);
             buf.putString(username);
-            buf.putString(service);
+            buf.putString(serviceName);
             buf.putString("publickey");
             buf.putByte((byte) 1);
             buf.putString(keyAlg);

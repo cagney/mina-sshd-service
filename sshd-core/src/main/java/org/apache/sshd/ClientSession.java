@@ -154,5 +154,5 @@ public interface ClientSession extends Session {
     /**
      * Switch to the specified service.
      */
-    void switchToNextService(boolean authenticated, String username);
+    void switchToService(boolean authenticated, String username, ServiceClient service);
 }

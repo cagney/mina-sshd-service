@@ -1,19 +1,14 @@
 package org.apache.sshd.common.service;
 
 import org.apache.sshd.client.UserAuth;
-import org.apache.sshd.client.auth.UserAuthAgent;
-import org.apache.sshd.client.auth.UserAuthPassword;
-import org.apache.sshd.client.auth.UserAuthPublicKey;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.future.DefaultAuthFuture;
 import org.apache.sshd.client.session.ClientSessionImpl;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
-import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
-import java.security.KeyPair;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,15 +19,16 @@ import java.security.KeyPair;
  */
 public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> implements ServiceClient {
 
+    /**
+     * When !authFuture.isDone() the current authentication
+     */
     private UserAuth userAuth;
 
     /**
      * The AuthFuture that is being used by the current auth request.  This encodes the state.
      * isSuccess -> authenticated, else if isDone -> server waiting for user auth, else authenticating.
      */
-    private volatile AuthFuture authFuture;
-
-
+    private AuthFuture authFuture;
 
     public UserAuthServiceClient(ClientSessionImpl session, Object sessionLock) {
         super(session, sessionLock);
@@ -41,21 +37,11 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
         logger.debug("created");
     }
 
-    public void serverAcceptedService() {
+    public void start() {
         synchronized (sessionLock) {
             logger.debug("accepted");
             // kick start the authentication process by failing the pending auth.
             this.authFuture.setAuthed(false);
-        }
-    }
-
-    /**
-     * Is the server waiting on the client to provide some sort of authentication?
-     * @return
-     */
-    public boolean isWaitingForAuth() {
-        synchronized (sessionLock) {
-            return authFuture.isFailure();
         }
     }
 
@@ -83,7 +69,7 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
         }
     }
 
-    private boolean readyForAuth() {
+    private boolean readyForAuth(UserAuth nextUserAuth) {
         // isDone indicates that the last auth finished and a new one can commence.
         while (!this.authFuture.isDone()) {
             logger.debug("waiting to send authentication");
@@ -110,9 +96,10 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
             logger.debug("authentication already in progress");
             throw new IllegalStateException("Authentication already in progress?");
         }
-        logger.debug("ready to try authentication with new lock");
-        // The new future !isDone() - i.e., in progress blocking out other waits.
+        // Set up the next round of authentication.  Each round gets a new lock.
+        this.userAuth = nextUserAuth;
         this.authFuture = new DefaultAuthFuture(sessionLock);
+        logger.debug("ready to authenticate using {} with new lock", nextUserAuth);
         return true;
     }
 
@@ -121,7 +108,7 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
         switch (userAuth.next(buffer)) {
             case Success:
                 logger.debug("succeeded with {}", userAuth);
-                session.switchToNextService(true, userAuth.getUsername());
+                session.switchToService(true, userAuth.getUsername(), userAuth.getService());
                 authFuture.setAuthed(true);
                 break;
             case Failure:
@@ -135,36 +122,10 @@ public class UserAuthServiceClient extends UserAuthService<ClientSessionImpl> im
         }
     }
 
-    public AuthFuture authAgent(String username) throws IOException {
-        logger.debug("will try authentication with agent");
+    public AuthFuture auth(UserAuth userAuth) throws IOException {
+        logger.debug("will try authentication with {}", userAuth);
         synchronized (sessionLock) {
-            if (readyForAuth()) {
-                if (session.getFactoryManager().getAgentFactory() == null) {
-                    throw new IllegalStateException("No ssh agent factory has been configured");
-                }
-                userAuth = new UserAuthAgent(session, username);
-                processUserAuth(null);
-            }
-            return authFuture;
-        }
-    }
-
-    public AuthFuture authPassword(String username, String password) throws IOException {
-        logger.debug("will try authentication with username/password");
-        synchronized (sessionLock) {
-            if (readyForAuth()) {
-                userAuth = new UserAuthPassword(session, username, password);
-                processUserAuth(null);
-            }
-            return authFuture;
-        }
-    }
-
-    public AuthFuture authPublicKey(String username, KeyPair key) throws IOException {
-        logger.debug("will try authentication with public-key");
-        synchronized (sessionLock) {
-            if (readyForAuth()) {
-                userAuth = new UserAuthPublicKey(session, username, key);
+            if (readyForAuth(userAuth)) {
                 processUserAuth(null);
             }
             return authFuture;

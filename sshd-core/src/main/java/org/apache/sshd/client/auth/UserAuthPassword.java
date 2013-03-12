@@ -23,6 +23,7 @@ import java.io.IOException;
 import org.apache.sshd.client.UserAuth;
 import org.apache.sshd.client.session.ClientSessionImpl;
 import org.apache.sshd.common.SshConstants;
+import org.apache.sshd.common.service.ServiceClient;
 import org.apache.sshd.common.util.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,17 +33,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
  */
-public class UserAuthPassword implements UserAuth {
+public class UserAuthPassword extends AbstractUserAuth implements UserAuth {
 
-    protected final Logger log = LoggerFactory.getLogger(getClass());
-
-    private final ClientSessionImpl session;
-    private final String username;
     private final String password;
 
-    public UserAuthPassword(ClientSessionImpl session, String username, String password) {
-        this.session = session;
-        this.username = username;
+    public UserAuthPassword(ClientSessionImpl session, ServiceClient service, String username, String password) {
+        super(session, service, username);
         this.password = password;
     }
 
@@ -52,7 +48,6 @@ public class UserAuthPassword implements UserAuth {
 
     public Result next(Buffer buffer) throws IOException {
         if (buffer == null) {
-            String serviceName = session.getNextService().getName();
             log.info("Send SSH_MSG_USERAUTH_REQUEST for password and service {}", serviceName);
             buffer = session.createBuffer(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST, 0);
             buffer.putString(username);

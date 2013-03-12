@@ -20,6 +20,7 @@ package org.apache.sshd.client;
 
 import java.io.IOException;
 
+import org.apache.sshd.common.service.ServiceClient;
 import org.apache.sshd.common.util.Buffer;
 
 /**
@@ -36,6 +37,8 @@ public interface UserAuth {
     }
 
     String getUsername();
+
+    ServiceClient getService();
 
     Result next(Buffer buffer) throws IOException;
 

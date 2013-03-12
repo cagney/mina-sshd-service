@@ -21,12 +21,12 @@ public interface ServiceClient extends Service {
     // ServiceClient requested();
 
     /**
-     * Call this when the service has been serverAcceptedService.
+     * Call this when the service has been start.
      *
      * ClientSessionImpl creates the first service before it has properly connected so that calling code can
-     * start manipulating the services state before the service has been requested, yet alone serverAcceptedService.
+     * start manipulating the services state before the service has been requested, yet alone start.
      * For instance, by trying to set the authPassword that will be used.
      */
-    void serverAcceptedService();
+    void start();
 
 }

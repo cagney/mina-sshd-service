@@ -28,6 +28,7 @@ import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.Signature;
 import org.apache.sshd.common.SshConstants;
+import org.apache.sshd.common.service.ServiceClient;
 import org.apache.sshd.common.util.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,17 +38,14 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
  */
-public class UserAuthPublicKey implements UserAuth {
+public class UserAuthPublicKey extends AbstractUserAuth implements UserAuth {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ClientSessionImpl session;
-    private final String username;
     private final KeyPair key;
 
-    public UserAuthPublicKey(ClientSessionImpl session, String username, KeyPair key) {
-        this.session = session;
-        this.username = username;
+    public UserAuthPublicKey(ClientSessionImpl session, ServiceClient service, String username, KeyPair key) {
+        super(session, service, username);
         this.key = key;
     }
 
@@ -58,7 +56,6 @@ public class UserAuthPublicKey implements UserAuth {
     public Result next(Buffer buffer) throws IOException {
         if (buffer == null) {
             try {
-                String serviceName = session.getNextService().getName();
                 log.info("Send SSH_MSG_USERAUTH_REQUEST for publickey and service {}", serviceName);
                 buffer = session.createBuffer(SshConstants.Message.SSH_MSG_USERAUTH_REQUEST, 0);
                 int pos1 = buffer.wpos() - 1;

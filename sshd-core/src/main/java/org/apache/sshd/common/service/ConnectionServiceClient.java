@@ -40,7 +40,7 @@ public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl
         super(serviceName, session, sessionLock, null, null, globalRequestMap);
     }
 
-    public void serverAcceptedService() {
+    public void start() {
         startHeartBeat();
     }
 

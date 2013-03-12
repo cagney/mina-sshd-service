@@ -75,7 +75,7 @@ public class UserAuthServiceProvider extends UserAuthService<ServerSession> impl
                 if (factory != null) {
                     UserAuth auth = factory.create();
                     try {
-                        authed = auth.auth(this.session, currentUsername, currentServiceName, request);
+                        authed = auth.auth(this.session, currentServiceName, currentUsername, request);
                         if (authed == null) {
                             // authentication is still ongoing
                             logger.debug("Authentication not finished");

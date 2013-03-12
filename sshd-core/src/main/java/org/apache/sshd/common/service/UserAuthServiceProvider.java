@@ -148,7 +148,7 @@ public class UserAuthServiceProvider extends UserAuthService<ServerSession> impl
             }
 
             unscheduleAuthTimer();
-            logger.info("Session {}@{} authenticated", session.getUsername(), session.getIoSession().getRemoteAddress());
+            logger.info("Session {}@{} authenticated", currentUsername, session.getIoSession().getRemoteAddress());
             Buffer response = session.createBuffer(SshConstants.Message.SSH_MSG_USERAUTH_SUCCESS, 0);
             session.writePacket(response);
             // start the service after the auth message has been sent

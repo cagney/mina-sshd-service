@@ -189,6 +189,13 @@ public class ServerSession extends AbstractSession<ServiceProvider> {
         this.currentService = serviceProvider;
         this.authed = authenticated;
         this.username = username;
+        if (log.isInfoEnabled()) {
+            if (authenticated) {
+                log.info("Starting authenticated service {} requested by {}@{}", serviceProvider.getName(), getIoSession().getRemoteAddress());
+            } else {
+                log.info("Starting unauthenticated service {} requested by {}@{}", new Object[] { serviceProvider.getName(), getUsername(), getIoSession().getRemoteAddress()});
+            }
+        }
         serviceProvider.start();
     }
 

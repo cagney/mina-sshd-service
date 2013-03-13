@@ -35,6 +35,7 @@ import org.apache.sshd.common.channel.ChannelOutputStream;
 import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.future.SshFuture;
 import org.apache.sshd.common.future.SshFutureListener;
+import org.apache.sshd.common.service.ConnectionServiceProvider;
 import org.apache.sshd.common.util.Buffer;
 import org.apache.sshd.common.util.IoUtils;
 import org.apache.sshd.common.util.LoggingFilterOutputStream;
@@ -480,7 +481,7 @@ public class ChannelSession extends AbstractServerChannel {
             return true;
         }
 
-        String authSocket = ((ServerSession) session).initAgentForward();
+        String authSocket = connection.initAgentForward();
         addEnvVariable(SshAgent.SSH_AUTHSOCKET_ENV_NAME, authSocket);
 
         if (wantReply) {
@@ -505,8 +506,8 @@ public class ChannelSession extends AbstractServerChannel {
             return true;
         }
 
-        String display = ((ServerSession) session).createX11Display(buffer.getBoolean(), buffer.getString(),
-                                                                    buffer.getString(), buffer.getInt());
+        String display = connection.createX11Display(buffer.getBoolean(), buffer.getString(),
+                                                     buffer.getString(), buffer.getInt());
         if (display == null) {
             if (wantReply) {
                 buffer = session.createBuffer(SshConstants.Message.SSH_MSG_CHANNEL_FAILURE, 0);

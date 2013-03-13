@@ -175,7 +175,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
         final int channelId = getNextChannelId();
         channels.put(channelId, channel);
-        channel.init(session, channelId);
+        channel.init(session, this, channelId);
         channel.open(id, rwsize, rmpsize, buffer).addListener(new SshFutureListener<OpenFuture>() {
             public void operationComplete(OpenFuture future) {
                 try {
@@ -234,7 +234,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
     public int registerChannel(Channel channel) throws Exception {
         int channelId = getNextChannelId();
-        channel.init(session, channelId);
+        channel.init(session, this, channelId);
         channels.put(channelId, channel);
         return channelId;
     }

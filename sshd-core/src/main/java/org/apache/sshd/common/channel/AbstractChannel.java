@@ -26,6 +26,7 @@ import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.future.DefaultCloseFuture;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
 import org.apache.sshd.common.util.BufferUtils;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ public abstract class AbstractChannel implements Channel {
     protected final Window localWindow = new Window(this, null, getClass().getName().contains(".client."), true);
     protected final Window remoteWindow = new Window(this, null, getClass().getName().contains(".client."), false);
     protected Session session;
+    protected ConnectionService connection;
     protected int id;
     protected int recipient;
     protected boolean eof;
@@ -72,8 +74,9 @@ public abstract class AbstractChannel implements Channel {
         throw new IllegalStateException();
     }
 
-    public void init(Session session, int id) {
+    public void init(Session session, ConnectionService connection, int id) {
         this.session = session;
+        this.connection = connection;
         this.id = id;
         configureWindow();
     }

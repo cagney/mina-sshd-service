@@ -306,14 +306,6 @@ public class ServerSession extends AbstractSession<ServiceProvider> {
         }
     }
 
-    public String initAgentForward() throws IOException {
-        return ((ConnectionServiceProvider)currentService).initAgentForward();
-    }
-
-    public String createX11Display(boolean singleConnection, String authenticationProtocol, String authenticationCookie, int screen) throws IOException {
-        return findService(ConnectionServiceProvider.class).createX11Display(singleConnection, authenticationProtocol, authenticationCookie, screen);
-    }
-
 	/**
 	 * Returns the session id.
 	 * 

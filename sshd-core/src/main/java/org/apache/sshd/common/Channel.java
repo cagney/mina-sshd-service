@@ -23,6 +23,7 @@ import java.io.IOException;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.channel.Window;
 import org.apache.sshd.common.future.CloseFuture;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
 
 /**
@@ -54,7 +55,7 @@ public interface Channel {
 
     CloseFuture close(boolean immediately);
 
-    void init(Session session, int id) throws IOException;
+    void init(Session session, ConnectionService connection, int id) throws IOException;
 
     /**
      * For a server channel, this method will actually open the channel

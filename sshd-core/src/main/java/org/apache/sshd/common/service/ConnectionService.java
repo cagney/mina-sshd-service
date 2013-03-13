@@ -353,7 +353,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
      * @return the target channel
      * @throws IOException if the channel does not exists
      */
-    public Channel getChannel(Buffer buffer) throws IOException {
+    protected Channel getChannel(Buffer buffer) throws IOException {
         int recipient = buffer.getInt();
         Channel channel = channels.get(recipient);
         if (channel == null) {

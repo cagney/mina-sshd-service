@@ -939,17 +939,6 @@ public abstract class AbstractSession<S extends Service> implements Session {
     }
 
     /**
-     * Retrieve the channel designated by the given packet
-     *
-     * @param buffer the incoming packet
-     * @return the target channel
-     * @throws IOException if the channel does not exists
-     */
-    protected Channel getChannel(Buffer buffer) throws IOException {
-        return findService(ConnectionService.class).getChannel(buffer);
-    }
-
-    /**
      * Retrieve a configuration property as an integer
      *
      * @param name the name of the property

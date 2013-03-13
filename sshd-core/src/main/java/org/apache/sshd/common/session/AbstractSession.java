@@ -1014,13 +1014,6 @@ public abstract class AbstractSession<S extends Service> implements Session {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    public TcpipForwarder getTcpipForwarder() {
-        return findService(ConnectionService.class).getTcpipForwarder();
-    }
-
-    /**
      * Find the instance of the specified service.
      *
      * The client has a list of services so will need to be searched; the server only ever has one service.

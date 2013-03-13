@@ -162,12 +162,6 @@ public interface Session {
     CloseFuture getCloseFuture();
 
     /**
-     * Retrieve the tcpip forwarder
-     * @return
-     */
-    TcpipForwarder getTcpipForwarder();
-
-    /**
      * Type safe key for storage within the user attributes of {@link org.apache.sshd.common.session.AbstractSession}.
      * Typically it is used as a static variable that is shared between the producer
      * and the consumer. To further restrict access the setting or getting it from

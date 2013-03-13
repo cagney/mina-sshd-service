@@ -44,6 +44,7 @@ import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.service.ServiceClient;
 import org.apache.sshd.common.service.UserAuthServiceClient;
 import org.apache.sshd.common.session.AbstractSession;
@@ -142,19 +143,19 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
     }
 
     public SshdSocketAddress startLocalPortForwarding(SshdSocketAddress local, SshdSocketAddress remote) throws Exception {
-        return getTcpipForwarder().startLocalPortForwarding(local, remote);
+        return findService(ConnectionService.class).getTcpipForwarder().startLocalPortForwarding(local, remote);
     }
 
     public void stopLocalPortForwarding(SshdSocketAddress local) throws Exception {
-        getTcpipForwarder().stopLocalPortForwarding(local);
+        findService(ConnectionService.class).getTcpipForwarder().stopLocalPortForwarding(local);
     }
 
     public SshdSocketAddress startRemotePortForwarding(SshdSocketAddress remote, SshdSocketAddress local) throws Exception {
-        return getTcpipForwarder().startRemotePortForwarding(remote, local);
+        return findService(ConnectionService.class).getTcpipForwarder().startRemotePortForwarding(remote, local);
     }
 
     public void stopRemotePortForwarding(SshdSocketAddress remote) throws Exception {
-        getTcpipForwarder().stopRemotePortForwarding(remote);
+        findService(ConnectionService.class).getTcpipForwarder().stopRemotePortForwarding(remote);
     }
 
     protected void handleMessage(Buffer buffer) throws Exception {

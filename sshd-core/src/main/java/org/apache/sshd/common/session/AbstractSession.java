@@ -353,19 +353,6 @@ public abstract class AbstractSession<S extends Service> implements Session {
     }
 
     /**
-     * Send a global request and wait for the response.
-     * This must only be used when sending a SSH_MSG_GLOBAL_REQUEST with a result expected,
-     * else it will wait forever.
-     *
-     * @param buffer the buffer containing the global request
-     * @return <code>true</code> if the request was successful, <code>false</code> otherwise.
-     * @throws java.io.IOException if an error occured when encoding sending the packet
-     */
-    public Buffer request(Buffer buffer) throws IOException {
-        return findService(ConnectionService.class).request(buffer);
-    }
-
-    /**
      * Create a new buffer for the specified SSH packet and reserve the needed space
      * (5 bytes) for the packet header.
      *

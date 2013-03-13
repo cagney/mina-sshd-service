@@ -18,6 +18,8 @@
  */
 package org.apache.sshd.common;
 
+import org.apache.sshd.common.service.ConnectionService;
+
 /**
  * A factory for creating TcpipForwarder objects for client Port forwarding
  */
@@ -27,9 +29,9 @@ public interface TcpipForwarderFactory {
      * Creates the TcpipForwarder to be used for TCP/IP port forwards for
      * this ClientSession.
      *
-     * @param session the Session the connections are forwarded through
+     * @param connection the Connection the tcpip-forward channels are forwarded through
      * @return the TcpipForwarder that will listen for connections and set up forwarding
      */
-    public TcpipForwarder create(Session session);
+    public TcpipForwarder create(ConnectionService connection);
 
 }

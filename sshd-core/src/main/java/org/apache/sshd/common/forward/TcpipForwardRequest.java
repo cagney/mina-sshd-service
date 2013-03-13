@@ -41,12 +41,12 @@ public class TcpipForwardRequest extends GlobalRequest {
         }
     }
 
-    public static Buffer request(Session session, SshdSocketAddress remote, SshdSocketAddress local) throws IOException {
-        Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_GLOBAL_REQUEST, 0);
+    public static Buffer request(ConnectionService connection, SshdSocketAddress remote, SshdSocketAddress local) throws IOException {
+        Buffer buffer = connection.getSession().createBuffer(SshConstants.Message.SSH_MSG_GLOBAL_REQUEST, 0);
         buffer.putString(REQUEST);
         buffer.putBoolean(true);
         buffer.putString(remote.getHostName());
         buffer.putInt(remote.getPort());
-        return session.request(buffer);
+        return connection.request(buffer);
     }
 }

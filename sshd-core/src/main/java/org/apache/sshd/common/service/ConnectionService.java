@@ -53,7 +53,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
         super(serviceName, session, sessionLock);
         this.agentForward = agentForward;
         this.x11Forward = x11Forward;
-        this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(session);
+        this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(this);
         this.globalRequestMap = globalRequestMap;
     }
 

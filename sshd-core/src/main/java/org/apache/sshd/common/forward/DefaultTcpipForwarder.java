@@ -46,14 +46,14 @@ import java.util.*;
  */
 public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForwarder {
 
-    private final Session session;
+    private final ConnectionService connection;
     private final Map<Integer, SshdSocketAddress> localToRemote = new HashMap<Integer, SshdSocketAddress>();
     private final Map<Integer, SshdSocketAddress> remoteToLocal = new HashMap<Integer, SshdSocketAddress>();
     private final Set<SshdSocketAddress> localForwards = new HashSet<SshdSocketAddress>();
     protected IoAcceptor acceptor;
 
-    public DefaultTcpipForwarder(Session session) {
-        this.session = session;
+    public DefaultTcpipForwarder(ConnectionService connection) {
+        this.connection = connection;
     }
 
     //
@@ -85,7 +85,7 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
     }
 
     public synchronized SshdSocketAddress startRemotePortForwarding(SshdSocketAddress remote, SshdSocketAddress local) throws Exception {
-        Buffer result = TcpipForwardRequest.request(session, remote, local);
+        Buffer result = TcpipForwardRequest.request(connection, remote, local);
         if (result == null) {
             throw new SshException("Tcpip forwarding request denied by server");
         }
@@ -97,7 +97,7 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
 
     public synchronized void stopRemotePortForwarding(SshdSocketAddress remote) throws Exception {
         if (remoteToLocal.remove(remote.getPort()) != null) {
-            CancelTcpipForwardRequest.request(session, remote);
+            CancelTcpipForwardRequest.request(connection, remote);
         }
     }
 
@@ -112,8 +112,8 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
         if (local.getPort() < 0) {
             throw new IllegalArgumentException("Invalid local port: " + local.getPort());
         }
-        final ForwardingFilter filter = session.getFactoryManager().getTcpipForwardingFilter();
-        if (filter == null || !filter.canListen(local, session)) {
+        final ForwardingFilter filter = connection.getSession().getFactoryManager().getTcpipForwardingFilter();
+        if (filter == null || !filter.canListen(local, connection.getSession())) {
             throw new IOException("Rejected address: " + local);
         }
         SshdSocketAddress bound = doBind(local);
@@ -132,7 +132,7 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
 
     public synchronized void initialize() {
         if (this.acceptor == null) {
-            NioSocketAcceptor acceptor = session.getFactoryManager().getTcpipForwardingAcceptorFactory().createNioSocketAcceptor(session);
+            NioSocketAcceptor acceptor = connection.getSession().getFactoryManager().getTcpipForwardingAcceptorFactory().createNioSocketAcceptor(connection.getSession());
             acceptor.setHandler(this);
             acceptor.setReuseAddress(true);
             acceptor.getFilterChain().addLast("executor", new ExecutorFilter(EnumSet.complementOf(EnumSet.of(IoEventType.SESSION_CREATED)).toArray(new IoEventType[0])));
@@ -162,12 +162,12 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
             channel = new TcpipClientChannel(TcpipClientChannel.Type.Forwarded, session, null);
         }
         session.setAttribute(TcpipClientChannel.class, channel);
-        this.session.registerChannel(channel);
+        this.connection.registerChannel(channel);
         channel.open().addListener(new SshFutureListener<OpenFuture>() {
             public void operationComplete(OpenFuture future) {
                 Throwable t = future.getException();
                 if (t != null) {
-                    DefaultTcpipForwarder.this.session.unregisterChannel(channel);
+                    DefaultTcpipForwarder.this.connection.unregisterChannel(channel);
                     channel.close(false);
                 }
             }

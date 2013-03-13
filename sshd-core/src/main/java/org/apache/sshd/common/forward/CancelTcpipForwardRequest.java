@@ -32,12 +32,12 @@ public class CancelTcpipForwardRequest extends GlobalRequest {
         replySuccess(connectionService, wantReply);
     }
 
-    public static void request(Session session, SshdSocketAddress remote) throws IOException {
-        Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_GLOBAL_REQUEST, 0);
+    public static void request(ConnectionService connection, SshdSocketAddress remote) throws IOException {
+        Buffer buffer = connection.getSession().createBuffer(SshConstants.Message.SSH_MSG_GLOBAL_REQUEST, 0);
         buffer.putString(REQUEST);
         buffer.putBoolean(false);
         buffer.putString(remote.getHostName());
         buffer.putInt(remote.getPort());
-        session.writePacket(buffer);
+        connection.getSession().writePacket(buffer);
     }
 }

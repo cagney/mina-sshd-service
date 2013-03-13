@@ -120,25 +120,25 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
 
     public ChannelShell createShellChannel() throws Exception {
         ChannelShell channel = new ChannelShell();
-        registerChannel(channel);
+        findService(ConnectionService.class).registerChannel(channel);
         return channel;
     }
 
     public ChannelExec createExecChannel(String command) throws Exception {
         ChannelExec channel = new ChannelExec(command);
-        registerChannel(channel);
+        findService(ConnectionService.class).registerChannel(channel);
         return channel;
     }
 
     public ChannelSubsystem createSubsystemChannel(String subsystem) throws Exception {
         ChannelSubsystem channel = new ChannelSubsystem(subsystem);
-        registerChannel(channel);
+        findService(ConnectionService.class).registerChannel(channel);
         return channel;
     }
 
     public ChannelDirectTcpip createDirectTcpipChannel(SshdSocketAddress local, SshdSocketAddress remote) throws Exception {
         ChannelDirectTcpip channel = new ChannelDirectTcpip(local, remote);
-        registerChannel(channel);
+        findService(ConnectionService.class).registerChannel(channel);
         return channel;
     }
 

@@ -136,7 +136,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
     protected PublickeyAuthenticator publickeyAuthenticator;
     protected GSSAuthenticator gssAuthenticator;
     protected ForwardingAcceptorFactory x11ForwardingAcceptorFactory;
-    protected List<ServiceProviderFactory> serviceProviderFactories;
+    protected NameMap<ServiceProviderFactory> serviceProviderFactories;
 
     public SshServer() {
     }
@@ -270,11 +270,11 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         this.tcpipForwardingFilter = forwardingFilter;
     }
 
-    public List<ServiceProviderFactory> getServiceProviderFactories() {
+    public NameMap<ServiceProviderFactory> getServiceProviderFactories() {
         return serviceProviderFactories;
     }
 
-    public void setServiceServerFactories(List<ServiceProviderFactory> serviceProviderFactories) {
+    public void setServiceServerFactories(NameMap<ServiceProviderFactory> serviceProviderFactories) {
         this.serviceProviderFactories = serviceProviderFactories;
     }
 
@@ -492,7 +492,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
                 new SignatureDSA.Factory(),
                 new SignatureRSA.Factory()));
         sshd.setFileSystemFactory(new NativeFileSystemFactory());
-        sshd.setServiceServerFactories(ServiceProviderFactory.asList(
+        sshd.setServiceServerFactories(new NameMap<ServiceProviderFactory>(
                 new UserAuthServiceProviderFactory(),
                 new ConnectionServiceProviderFactory()));
 

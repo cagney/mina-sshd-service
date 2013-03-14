@@ -2,12 +2,11 @@ package org.apache.sshd.common.service;
 
 import org.apache.sshd.client.ClientFactoryManager;
 import org.apache.sshd.client.session.ClientSessionImpl;
+import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.SshConstants;
-import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,7 +35,7 @@ public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl
      * @param globalRequestMap
      */
     protected ConnectionServiceClient(String serviceName, ClientSessionImpl session, Object sessionLock,
-                                    Map <String,GlobalRequest> globalRequestMap) {
+                                    NameMap<GlobalRequest> globalRequestMap) {
         super(serviceName, session, sessionLock, globalRequestMap);
     }
 

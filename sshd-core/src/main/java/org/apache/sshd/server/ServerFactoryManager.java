@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.FactoryManager;
+import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.ForwardingAcceptorFactory;
 import org.apache.sshd.common.service.ServiceProvider;
@@ -141,8 +142,8 @@ public interface ServerFactoryManager extends FactoryManager {
     /**
      * Retrieve the service provider factory.
      *
-     * @return A list of factories that create service providers
+     * @return A NameMap of factories that create service providers
      */
-    List<ServiceProviderFactory> getServiceProviderFactories();
+    NameMap<ServiceProviderFactory> getServiceProviderFactories();
 
 }

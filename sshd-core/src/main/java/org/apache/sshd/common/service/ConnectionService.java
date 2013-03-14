@@ -4,6 +4,7 @@ import org.apache.sshd.agent.common.AgentForwardSupport;
 import org.apache.sshd.client.channel.AbstractClientChannel;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.Channel;
+import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
@@ -46,10 +47,10 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
     private AgentForwardSupport agentForward;
     private final X11ForwardSupport x11Forward;
-    private final Map<String,GlobalRequest> globalRequestMap;
+    private final NameMap<GlobalRequest> globalRequestMap;
 
     protected ConnectionService(String serviceName, T session, Object sessionLock,
-                                Map<String,GlobalRequest> globalRequestMap) {
+                                NameMap<GlobalRequest> globalRequestMap) {
         super(serviceName, session, sessionLock);
         this.agentForward = session.getFactoryManager().getAgentFactory() != null
                 ? new AgentForwardSupport(this)

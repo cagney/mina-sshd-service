@@ -1,6 +1,7 @@
 package org.apache.sshd.common.service;
 
 import org.apache.sshd.agent.common.AgentForwardSupport;
+import org.apache.sshd.common.NameMap;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.x11.X11ForwardSupport;
 
@@ -32,7 +33,7 @@ public class ConnectionServiceProvider extends ConnectionService<ServerSession> 
      * @param globalRequestMap
      */
     protected ConnectionServiceProvider(String serviceName, ServerSession session, Object sessionLock,
-                                        Map<String,GlobalRequest> globalRequestMap) {
+                                        NameMap<GlobalRequest> globalRequestMap) {
         super(serviceName, session, sessionLock, globalRequestMap);
     }
 

@@ -20,14 +20,12 @@ package org.apache.sshd.server.session;
 
 import java.io.IOException;
 import java.security.KeyPair;
-import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.sshd.common.*;
-import org.apache.sshd.common.service.ConnectionServiceProvider;
 import org.apache.sshd.common.service.ServiceProvider;
 import org.apache.sshd.common.service.ServiceProviderFactory;
 import org.apache.sshd.common.session.AbstractSession;
@@ -173,8 +171,8 @@ public class ServerSession extends AbstractSession<ServiceProvider> {
     }
 
     public ServiceProvider createService(String serviceName, boolean authenticated, String username) {
-        List<ServiceProviderFactory> serviceProviderFactories = getServerFactoryManager().getServiceProviderFactories();
-        ServiceProviderFactory serviceProviderFactory = ServiceProviderFactory.find(serviceProviderFactories, serviceName);
+        NameMap<ServiceProviderFactory> serviceProviderFactories = getServerFactoryManager().getServiceProviderFactories();
+        ServiceProviderFactory serviceProviderFactory = serviceProviderFactories.get(serviceName);
         if (serviceProviderFactory == null) {
             log.debug("Service {} not found", serviceName);
             return null; // not found

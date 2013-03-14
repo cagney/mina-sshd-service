@@ -1,5 +1,7 @@
 package org.apache.sshd.common.service;
 
+import org.apache.sshd.common.Name;
+import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.forward.CancelTcpipForwardRequest;
@@ -16,16 +18,10 @@ import java.util.Map;
  * Time: 2:43 PM
  * To change this template use File | Settings | File Templates.
  */
-abstract public class GlobalRequest {
-
-    private final String name;
+abstract public class GlobalRequest extends Name {
 
     protected GlobalRequest(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
+        super(name);
     }
 
     abstract public void process(ConnectionService connectionService, String request, boolean wantReply, Buffer buffer) throws Exception;
@@ -57,33 +53,12 @@ abstract public class GlobalRequest {
     }
 
     /**
-     * Helper function for creating the request map.
-     * @param requests
-     * @return
-     */
-    public static Map<String,GlobalRequest> create(GlobalRequest[] requests) {
-        return create(new HashMap<String, GlobalRequest>(), requests);
-    }
-    /**
-     * Helper function for creating the request map.
-     * @param requests
-     * @return
-     */
-    public static Map<String,GlobalRequest> create(Map<String,GlobalRequest> globalRequestMap, GlobalRequest[] requests) {
-        for (GlobalRequest request : requests) {
-            globalRequestMap.put(request.getName(), request);
-        }
-        return globalRequestMap;
-    }
-
-    /**
      * return the default map of supported requests.
      */
-    public static Map<String,GlobalRequest> defaults() {
-        return create(new GlobalRequest[] {
+    public static NameMap<GlobalRequest> defaults() {
+        return new NameMap<GlobalRequest>(
                 new NoMoreSessions(),
                 new TcpipForwardRequest(),
-                new CancelTcpipForwardRequest(),
-        });
+                new CancelTcpipForwardRequest());
     }
 }

@@ -45,14 +45,16 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
     protected final AtomicReference<Buffer> requestResult = new AtomicReference<Buffer>();
 
     private AgentForwardSupport agentForward;
-    private X11ForwardSupport x11Forward;
+    private final X11ForwardSupport x11Forward;
     private final Map<String,GlobalRequest> globalRequestMap;
 
     protected ConnectionService(String serviceName, T session, Object sessionLock, AgentForwardSupport agentForward,
-                                X11ForwardSupport x11Forward, Map<String,GlobalRequest> globalRequestMap) {
+                                Map<String,GlobalRequest> globalRequestMap) {
         super(serviceName, session, sessionLock);
         this.agentForward = agentForward;
-        this.x11Forward = x11Forward;
+        this.x11Forward = session.getFactoryManager().getX11ForwardingAcceptorFactory() != null
+                ? new X11ForwardSupport(this)
+                : null;
         this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(this);
         this.globalRequestMap = globalRequestMap;
     }

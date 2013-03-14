@@ -37,7 +37,7 @@ public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl
      */
     protected ConnectionServiceClient(String serviceName, ClientSessionImpl session, Object sessionLock,
                                     Map <String,GlobalRequest> globalRequestMap) {
-        super(serviceName, session, sessionLock, null, null, globalRequestMap);
+        super(serviceName, session, sessionLock, null, globalRequestMap);
     }
 
     public void start() {

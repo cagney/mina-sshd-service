@@ -29,9 +29,8 @@ public interface ForwardingAcceptorFactory {
      * Creates the NioSocketAcceptor to be used for forwards for this
      * ServerSession.
      *
-     * @param session the Session the connections are forwarded through
      * @return the NioSocketAcceptor that will listen for connections
      */
-    public NioSocketAcceptor createNioSocketAcceptor(Session session);
+    public NioSocketAcceptor createNioSocketAcceptor();
 
 }

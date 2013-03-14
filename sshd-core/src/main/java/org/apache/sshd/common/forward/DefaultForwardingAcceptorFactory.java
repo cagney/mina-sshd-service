@@ -23,7 +23,6 @@ import java.net.Socket;
 
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.apache.sshd.common.ForwardingAcceptorFactory;
-import org.apache.sshd.common.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ public class DefaultForwardingAcceptorFactory implements ForwardingAcceptorFacto
     /** The log. */
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public NioSocketAcceptor createNioSocketAcceptor(Session s) {
+    public NioSocketAcceptor createNioSocketAcceptor() {
         NioSocketAcceptor nio = new NioSocketAcceptor();
         nio.setReuseAddress(true);
 

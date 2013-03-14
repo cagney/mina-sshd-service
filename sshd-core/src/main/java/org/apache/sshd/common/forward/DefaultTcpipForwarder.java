@@ -31,7 +31,6 @@ import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.*;
 import org.apache.sshd.common.future.SshFutureListener;
 import org.apache.sshd.common.service.ConnectionService;
-import org.apache.sshd.common.service.GlobalRequest;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
@@ -132,7 +131,7 @@ public class DefaultTcpipForwarder extends IoHandlerAdapter implements TcpipForw
 
     public synchronized void initialize() {
         if (this.acceptor == null) {
-            NioSocketAcceptor acceptor = connection.getSession().getFactoryManager().getTcpipForwardingAcceptorFactory().createNioSocketAcceptor(connection.getSession());
+            NioSocketAcceptor acceptor = connection.getSession().getFactoryManager().getTcpipForwardingAcceptorFactory().createNioSocketAcceptor();
             acceptor.setHandler(this);
             acceptor.setReuseAddress(true);
             acceptor.getFilterChain().addLast("executor", new ExecutorFilter(EnumSet.complementOf(EnumSet.of(IoEventType.SESSION_CREATED)).toArray(new IoEventType[0])));

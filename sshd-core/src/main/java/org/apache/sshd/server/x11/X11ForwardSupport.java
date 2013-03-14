@@ -36,8 +36,8 @@ import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.channel.ChannelOutputStream;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
-import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,17 +58,17 @@ public class X11ForwardSupport extends IoHandlerAdapter {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ServerSession session;
+    private final ConnectionService connection;
     private IoAcceptor acceptor;
 
-    public X11ForwardSupport(ServerSession session) {
+    public X11ForwardSupport(ConnectionService connection) {
         super();
-        this.session = session;
+        this.connection = connection;
     }
 
     public synchronized void initialize() {
         if (this.acceptor == null) {
-            NioSocketAcceptor acceptor = session.getServerFactoryManager().getX11ForwardingAcceptorFactory().createNioSocketAcceptor(session);
+            NioSocketAcceptor acceptor = connection.getSession().getFactoryManager().getX11ForwardingAcceptorFactory().createNioSocketAcceptor();
             acceptor.setHandler(this);
             acceptor.setReuseAddress(true);
             acceptor.getFilterChain().addLast(
@@ -140,7 +140,7 @@ public class X11ForwardSupport extends IoHandlerAdapter {
     public void sessionCreated(IoSession session) throws Exception {
         ChannelForwardedX11 channel = new ChannelForwardedX11(session);
         session.setAttribute(ChannelForwardedX11.class, channel);
-        this.session.registerChannel(channel);
+        this.connection.registerChannel(channel);
         OpenFuture future = channel.open().await();
         Throwable t = future.getException();
         if (t instanceof Exception) {

@@ -300,7 +300,7 @@ public class ClientSessionImpl extends AbstractSession<ServiceClient> implements
         return metadataMap;
     }
 
-    protected <T> T findService(Class<T> target) {
+    private <T> T findService(Class<T> target) {
         if (currentService != null && target.isInstance(currentService)) {
             return (T)currentService;
         } else {

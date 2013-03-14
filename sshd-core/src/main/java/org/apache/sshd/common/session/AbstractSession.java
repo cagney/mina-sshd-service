@@ -986,13 +986,4 @@ public abstract class AbstractSession<S extends Service> implements Session {
     public CloseFuture getCloseFuture() {
         return this.closeFuture;
     }
-
-    /**
-     * Find the instance of the specified service.
-     *
-     * The client has a list of services so will need to be searched; the server only ever has one service.
-     */
-    protected <T> T findService(Class<T> target) {
-        return (T)currentService;
-    }
 }

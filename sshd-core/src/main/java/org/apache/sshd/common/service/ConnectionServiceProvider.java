@@ -21,7 +21,7 @@ public class ConnectionServiceProvider extends ConnectionService<ServerSession> 
      * @param sessionLock
      */
     ConnectionServiceProvider(ServerSession session, Object sessionLock) {
-        this(SERVICE_NAME, session, sessionLock, new AgentForwardSupport(session), GlobalRequest.defaults());
+        this(SERVICE_NAME, session, sessionLock, GlobalRequest.defaults());
     }
 
     /**
@@ -29,13 +29,11 @@ public class ConnectionServiceProvider extends ConnectionService<ServerSession> 
      * @param serviceName
      * @param session
      * @param sessionLock
-     * @param agentForwardSupport
      * @param globalRequestMap
      */
     protected ConnectionServiceProvider(String serviceName, ServerSession session, Object sessionLock,
-                                        AgentForwardSupport agentForwardSupport,
                                         Map<String,GlobalRequest> globalRequestMap) {
-        super(serviceName, session, sessionLock, agentForwardSupport, globalRequestMap);
+        super(serviceName, session, sessionLock, globalRequestMap);
     }
 
     public void start() {

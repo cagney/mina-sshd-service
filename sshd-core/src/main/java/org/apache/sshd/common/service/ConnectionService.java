@@ -48,10 +48,12 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
     private final X11ForwardSupport x11Forward;
     private final Map<String,GlobalRequest> globalRequestMap;
 
-    protected ConnectionService(String serviceName, T session, Object sessionLock, AgentForwardSupport agentForward,
+    protected ConnectionService(String serviceName, T session, Object sessionLock,
                                 Map<String,GlobalRequest> globalRequestMap) {
         super(serviceName, session, sessionLock);
-        this.agentForward = agentForward;
+        this.agentForward = session.getFactoryManager().getAgentFactory() != null
+                ? new AgentForwardSupport(this)
+                : null;
         this.x11Forward = session.getFactoryManager().getX11ForwardingAcceptorFactory() != null
                 ? new X11ForwardSupport(this)
                 : null;

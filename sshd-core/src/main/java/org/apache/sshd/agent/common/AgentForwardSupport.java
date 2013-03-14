@@ -45,7 +45,7 @@ public class AgentForwardSupport {
     public String initialize() throws IOException {
         try {
             if (agentId == null) {
-                agentServer = connection.getSession().getFactoryManager().getAgentFactory().createServer(connection.getSession());
+                agentServer = connection.getSession().getFactoryManager().getAgentFactory().createServer(connection);
                 agentId = agentServer.getId();
             }
             return agentId;

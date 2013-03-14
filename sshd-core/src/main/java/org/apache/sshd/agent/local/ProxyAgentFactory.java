@@ -28,6 +28,8 @@ import org.apache.sshd.agent.SshAgentServer;
 import org.apache.sshd.common.Channel;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.Session;
+import org.apache.sshd.common.service.ConnectionService;
+import org.apache.sshd.common.service.ConnectionServiceProvider;
 import org.apache.sshd.server.session.ServerSession;
 
 public class ProxyAgentFactory implements SshAgentFactory {
@@ -50,11 +52,12 @@ public class ProxyAgentFactory implements SshAgentFactory {
         return proxy.createClient();
     }
 
-    public SshAgentServer createServer(Session session) throws IOException {
-        if (!(session instanceof ServerSession)) {
+    public SshAgentServer createServer(ConnectionService connection) throws IOException {
+        if (!(connection.getSession() instanceof ServerSession)) {
+            // TODO: Nothing says this isn't allowed; just it shouldn't be done.
             throw new IllegalStateException("The session used to create an agent server proxy must be a server session");
         }
-        final AgentServerProxy proxy = new AgentServerProxy((ServerSession) session);
+        final AgentServerProxy proxy = new AgentServerProxy(connection);
         proxies.put(proxy.getId(), proxy);
         return new SshAgentServer() {
             public String getId() {

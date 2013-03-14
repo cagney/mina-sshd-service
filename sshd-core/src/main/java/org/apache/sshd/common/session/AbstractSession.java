@@ -912,19 +912,6 @@ public abstract class AbstractSession<S extends Service> implements Session {
         negociated = guess;
     }
 
-    public int registerChannel(Channel channel) throws Exception {
-        return findService(ConnectionService.class).registerChannel(channel);
-    }
-
-    /**
-     * Remove this channel from the list of managed channels
-     *
-     * @param channel the channel
-     */
-    public void unregisterChannel(Channel channel) {
-        findService(ConnectionService.class).unregisterChannel(channel);
-    }
-
     /**
      * Retrieve a configuration property as an integer
      *

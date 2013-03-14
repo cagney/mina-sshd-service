@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.apache.sshd.agent.SshAgent;
 import org.apache.sshd.agent.SshAgentServer;
 import org.apache.sshd.client.future.OpenFuture;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,18 +36,18 @@ public class AgentServerProxy implements SshAgentServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(AgentServerProxy.class);
 
-    private final ServerSession session;
-    private String id;
+    private final ConnectionService connection;
+    private final String id;
 
-    public AgentServerProxy(ServerSession session) throws IOException {
-        this.session = session;
+    public AgentServerProxy(ConnectionService connection) throws IOException {
+        this.connection = connection;
         this.id = UUID.randomUUID().toString();
     }
 
     public SshAgent createClient() throws IOException {
         try {
             AgentForwardedChannel channel = new AgentForwardedChannel();
-            this.session.registerChannel(channel);
+            this.connection.registerChannel(channel);
             OpenFuture future = channel.open().await();
             Throwable t = future.getException();
             if (t instanceof Exception) {

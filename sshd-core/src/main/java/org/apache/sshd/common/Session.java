@@ -116,22 +116,6 @@ public interface Session {
     void exceptionCaught(Throwable t);
 
     /**
-     * Register a newly created channel with a new unique identifier
-     *
-     * @param channel the channel to register
-     * @return the id of this channel
-     * @throws Exception
-     */
-    int registerChannel(Channel channel) throws Exception;
-
-    /**
-     * Remove this channel from the list of managed channels
-     *
-     * @param channel the channel
-     */
-    void unregisterChannel(Channel channel);
-
-    /**
      * Add a session |listener|.
      *
      * @param listener the session listener to add

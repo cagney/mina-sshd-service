@@ -88,7 +88,7 @@ public abstract class AbstractChannel implements Channel {
                     log.debug("Closing channel {} immediately", id);
                     closeFuture.setClosed();
                     lock.notifyAll();
-                    session.unregisterChannel(this);
+                    connection.unregisterChannel(this);
                 } else {
                     if (!closing) {
                         closing = true;

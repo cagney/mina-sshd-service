@@ -26,6 +26,7 @@ import org.apache.sshd.agent.SshAgentServer;
 import org.apache.sshd.common.Channel;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.Session;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.server.session.ServerSession;
 
 public class UnixAgentFactory implements SshAgentFactory {
@@ -40,10 +41,10 @@ public class UnixAgentFactory implements SshAgentFactory {
         return agent;
     }
 
-    public SshAgentServer createServer(Session session) throws IOException {
-        if (!(session instanceof ServerSession)) {
+    public SshAgentServer createServer(ConnectionService connection) throws IOException {
+        if (!(connection.getSession() instanceof ServerSession)) {
             throw new IllegalStateException("The session used to create an agent server proxy must be a server session");
         }
-        return new AgentServerProxy((ServerSession) session);
+        return new AgentServerProxy(connection);
     }
 }

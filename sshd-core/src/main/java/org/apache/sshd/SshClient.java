@@ -168,6 +168,10 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         this.serviceClientsFactory = serviceClientsFactory;
     }
 
+    public ForwardingAcceptorFactory getX11ForwardingAcceptorFactory() {
+        return null;
+    }
+
     protected void checkConfig() {
         if (getKeyExchangeFactories() == null) {
             throw new IllegalArgumentException("KeyExchangeFactories not set");
@@ -496,5 +500,4 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
             client.stop();
         }
     }
-
 }

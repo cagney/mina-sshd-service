@@ -170,4 +170,12 @@ public interface FactoryManager {
      * @return the <code>TcpipForwarderFactory</code>
      */
     TcpipForwarderFactory getTcpipForwarderFactory();
+
+    /**
+     * Retrieve the IoAcceptor factory to be used to accept incoming connections
+     * for X11 Forwards.
+     *
+     * @return A <code>ForwardNioAcceptorFactory</code>
+     */
+    ForwardingAcceptorFactory getX11ForwardingAcceptorFactory();
 }

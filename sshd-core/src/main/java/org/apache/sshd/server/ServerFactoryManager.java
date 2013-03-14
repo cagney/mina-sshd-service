@@ -139,14 +139,6 @@ public interface ServerFactoryManager extends FactoryManager {
     List<NamedFactory<Command>> getSubsystemFactories();
 
     /**
-     * Retrieve the IoAcceptor factory to be used to accept incoming connections
-     * for X11 Forwards.
-     * 
-     * @return A <code>ForwardNioAcceptorFactory</code>
-     */
-    ForwardingAcceptorFactory getX11ForwardingAcceptorFactory();
-
-    /**
      * Retrieve the service provider factory.
      *
      * @return A list of factories that create service providers

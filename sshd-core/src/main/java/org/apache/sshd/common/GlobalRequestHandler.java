@@ -1,6 +1,7 @@
-package org.apache.sshd.common.service;
+package org.apache.sshd.common;
 
 import org.apache.sshd.common.Name;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
 
 /**
@@ -10,7 +11,7 @@ import org.apache.sshd.common.util.Buffer;
  * Time: 12:11 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface GlobalRequestServer extends Name {
+public interface GlobalRequestHandler extends Name {
 
     void process(ConnectionService connectionService, String request, boolean wantReply, Buffer buffer) throws Exception;
 

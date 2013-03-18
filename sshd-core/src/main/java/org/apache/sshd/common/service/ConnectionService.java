@@ -4,6 +4,7 @@ import org.apache.sshd.agent.common.AgentForwardSupport;
 import org.apache.sshd.client.channel.AbstractClientChannel;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.Channel;
+import org.apache.sshd.common.GlobalRequestHandler;
 import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
@@ -47,7 +48,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
     private AgentForwardSupport agentForward;
     private final X11ForwardSupport x11Forward;
-    private final NameMap<GlobalRequestServer> globalRequestMap;
+    private final NameMap<GlobalRequestHandler> globalRequestMap;
 
     protected ConnectionService(String serviceName, T session, Object sessionLock) {
         super(serviceName, session, sessionLock);
@@ -217,9 +218,9 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
         if (request.startsWith("keepalive@")) {
             // want error response
         } else {
-            GlobalRequestServer globalRequestServer = globalRequestMap.get(request);
-            if (globalRequestServer != null) {
-                globalRequestServer.process(this, request, wantReply, buffer);
+            GlobalRequestHandler globalRequestHandler = globalRequestMap.get(request);
+            if (globalRequestHandler != null) {
+                globalRequestHandler.process(this, request, wantReply, buffer);
                 return;
             }
             logger.warn("Unknown global request: {}", request);

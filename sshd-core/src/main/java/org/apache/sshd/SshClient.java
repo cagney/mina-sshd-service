@@ -80,7 +80,7 @@ import org.apache.sshd.common.random.BouncyCastleRandom;
 import org.apache.sshd.common.random.JceRandom;
 import org.apache.sshd.common.random.SingletonRandomFactory;
 import org.apache.sshd.common.service.DefaultServiceClientsFactory;
-import org.apache.sshd.common.service.GlobalRequestServer;
+import org.apache.sshd.common.GlobalRequestHandler;
 import org.apache.sshd.common.service.ServiceClientsFactory;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.common.signature.SignatureDSA;
@@ -140,7 +140,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
     protected IoConnector connector;
     protected SessionFactory sessionFactory;
 
-    protected NameMap<GlobalRequestServer> globalRequestServerNameMap;
+    protected NameMap<GlobalRequestHandler> globalRequestServerNameMap;
 
     private ServerKeyVerifier serverKeyVerifier;
     private ServiceClientsFactory serviceClientsFactory;
@@ -176,11 +176,11 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         return null;
     }
 
-    public NameMap<GlobalRequestServer> getGlobalRequestServerNameMap() {
+    public NameMap<GlobalRequestHandler> getGlobalRequestServerNameMap() {
         return globalRequestServerNameMap;
     }
 
-    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestServer> globalRequestServerNameMap) {
+    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestHandler> globalRequestServerNameMap) {
         this.globalRequestServerNameMap = globalRequestServerNameMap;
     }
 
@@ -326,7 +326,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         client.setTcpipForwarderFactory( tcpipForwarderFactory );
         client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
         client.setServiceClientsFactory(new DefaultServiceClientsFactory());
-        client.setGlobalRequestServerNameMap(new NameMap<GlobalRequestServer>());
+        client.setGlobalRequestServerNameMap(new NameMap<GlobalRequestHandler>());
         return client;
     }
 

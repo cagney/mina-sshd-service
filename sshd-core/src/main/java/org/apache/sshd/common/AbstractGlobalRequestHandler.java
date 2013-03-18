@@ -1,8 +1,6 @@
-package org.apache.sshd.common.service;
+package org.apache.sshd.common;
 
-import org.apache.sshd.common.AbstractName;
-import org.apache.sshd.common.Session;
-import org.apache.sshd.common.SshConstants;
+import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
 
 /**
@@ -12,9 +10,9 @@ import org.apache.sshd.common.util.Buffer;
  * Time: 2:43 PM
  * To change this template use File | Settings | File Templates.
  */
-abstract public class AbstractGlobalRequestServer extends AbstractName implements GlobalRequestServer {
+abstract public class AbstractGlobalRequestHandler extends AbstractName implements GlobalRequestHandler {
 
-    protected AbstractGlobalRequestServer(String name) {
+    protected AbstractGlobalRequestHandler(String name) {
         super(name);
     }
 

@@ -63,7 +63,7 @@ import org.apache.sshd.common.random.BouncyCastleRandom;
 import org.apache.sshd.common.random.JceRandom;
 import org.apache.sshd.common.random.SingletonRandomFactory;
 import org.apache.sshd.common.service.ConnectionServiceProviderFactory;
-import org.apache.sshd.common.service.GlobalRequestServer;
+import org.apache.sshd.common.GlobalRequestHandler;
 import org.apache.sshd.common.service.NoMoreSessionsRequest;
 import org.apache.sshd.common.service.ServiceProviderFactory;
 import org.apache.sshd.common.service.UserAuthServiceProviderFactory;
@@ -141,7 +141,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
     protected GSSAuthenticator gssAuthenticator;
     protected ForwardingAcceptorFactory x11ForwardingAcceptorFactory;
     protected NameMap<ServiceProviderFactory> serviceProviderFactories;
-    protected NameMap<GlobalRequestServer> globalRequestServerNameMap;
+    protected NameMap<GlobalRequestHandler> globalRequestServerNameMap;
 
     public SshServer() {
     }
@@ -283,11 +283,11 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         this.serviceProviderFactories = serviceProviderFactories;
     }
 
-    public NameMap<GlobalRequestServer> getGlobalRequestServerNameMap() {
+    public NameMap<GlobalRequestHandler> getGlobalRequestServerNameMap() {
         return globalRequestServerNameMap;
     }
 
-    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestServer> globalRequestServerNameMap) {
+    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestHandler> globalRequestServerNameMap) {
         this.globalRequestServerNameMap = globalRequestServerNameMap;
     }
 
@@ -516,7 +516,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         ForwardingAcceptorFactory faf = new DefaultForwardingAcceptorFactory();
         sshd.setTcpipForwardingAcceptorFactory(faf);
         sshd.setX11ForwardNioSocketAcceptorFactory(faf);
-        sshd.setGlobalRequestServerNameMap(new NameMap<GlobalRequestServer>(
+        sshd.setGlobalRequestServerNameMap(new NameMap<GlobalRequestHandler>(
                     new NoMoreSessionsRequest(),
                     new TcpipForwardRequest(),
                     new CancelTcpipForwardRequest()));

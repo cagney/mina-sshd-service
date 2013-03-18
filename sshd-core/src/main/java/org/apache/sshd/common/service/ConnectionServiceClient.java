@@ -24,7 +24,7 @@ public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl
      * @param sessionLock
      */
     public ConnectionServiceClient(ClientSessionImpl session, Object sessionLock) {
-        this(SERVICE_NAME, session, sessionLock, GlobalRequest.defaults());
+        this(SERVICE_NAME, session, sessionLock);
     }
 
     /**
@@ -32,11 +32,9 @@ public class ConnectionServiceClient extends ConnectionService<ClientSessionImpl
      * @param serviceName
      * @param session
      * @param sessionLock
-     * @param globalRequestMap
      */
-    protected ConnectionServiceClient(String serviceName, ClientSessionImpl session, Object sessionLock,
-                                    NameMap<GlobalRequest> globalRequestMap) {
-        super(serviceName, session, sessionLock, globalRequestMap);
+    protected ConnectionServiceClient(String serviceName, ClientSessionImpl session, Object sessionLock) {
+        super(serviceName, session, sessionLock);
     }
 
     public void start() {

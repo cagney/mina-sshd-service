@@ -1,11 +1,7 @@
 package org.apache.sshd.common.service;
 
-import org.apache.sshd.agent.common.AgentForwardSupport;
 import org.apache.sshd.common.NameMap;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.x11.X11ForwardSupport;
-
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,7 +18,7 @@ public class ConnectionServiceProvider extends ConnectionService<ServerSession> 
      * @param sessionLock
      */
     ConnectionServiceProvider(ServerSession session, Object sessionLock) {
-        this(SERVICE_NAME, session, sessionLock, GlobalRequest.defaults());
+        this(SERVICE_NAME, session, sessionLock);
     }
 
     /**
@@ -30,11 +26,9 @@ public class ConnectionServiceProvider extends ConnectionService<ServerSession> 
      * @param serviceName
      * @param session
      * @param sessionLock
-     * @param globalRequestMap
      */
-    protected ConnectionServiceProvider(String serviceName, ServerSession session, Object sessionLock,
-                                        NameMap<GlobalRequest> globalRequestMap) {
-        super(serviceName, session, sessionLock, globalRequestMap);
+    protected ConnectionServiceProvider(String serviceName, ServerSession session, Object sessionLock) {
+        super(serviceName, session, sessionLock);
     }
 
     public void start() {

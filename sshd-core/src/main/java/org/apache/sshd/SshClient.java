@@ -48,6 +48,7 @@ import org.apache.sshd.client.kex.DHG1;
 import org.apache.sshd.client.kex.DHG14;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSessionImpl;
+import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
 import org.apache.sshd.common.TcpipForwarderFactory;
 import org.apache.sshd.common.AbstractFactoryManager;
@@ -79,6 +80,7 @@ import org.apache.sshd.common.random.BouncyCastleRandom;
 import org.apache.sshd.common.random.JceRandom;
 import org.apache.sshd.common.random.SingletonRandomFactory;
 import org.apache.sshd.common.service.DefaultServiceClientsFactory;
+import org.apache.sshd.common.service.GlobalRequestServer;
 import org.apache.sshd.common.service.ServiceClientsFactory;
 import org.apache.sshd.common.session.AbstractSession;
 import org.apache.sshd.common.signature.SignatureDSA;
@@ -138,6 +140,8 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
     protected IoConnector connector;
     protected SessionFactory sessionFactory;
 
+    protected NameMap<GlobalRequestServer> globalRequestServerNameMap;
+
     private ServerKeyVerifier serverKeyVerifier;
     private ServiceClientsFactory serviceClientsFactory;
 
@@ -170,6 +174,14 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
 
     public ForwardingAcceptorFactory getX11ForwardingAcceptorFactory() {
         return null;
+    }
+
+    public NameMap<GlobalRequestServer> getGlobalRequestServerNameMap() {
+        return globalRequestServerNameMap;
+    }
+
+    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestServer> globalRequestServerNameMap) {
+        this.globalRequestServerNameMap = globalRequestServerNameMap;
     }
 
     protected void checkConfig() {
@@ -213,6 +225,9 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
             }
             factories.add(getAgentFactory().getChannelForwardingFactory());
             setChannelFactories(factories);
+        }
+        if (getGlobalRequestServerNameMap() == null) {
+            throw new IllegalStateException("GlobalRequestServerNameMap not set");
         }
     }
 
@@ -311,6 +326,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         client.setTcpipForwarderFactory( tcpipForwarderFactory );
         client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
         client.setServiceClientsFactory(new DefaultServiceClientsFactory());
+        client.setGlobalRequestServerNameMap(new NameMap<GlobalRequestServer>());
         return client;
     }
 

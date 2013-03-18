@@ -49,7 +49,9 @@ import org.apache.sshd.common.cipher.ARCFOUR256;
 import org.apache.sshd.common.cipher.BlowfishCBC;
 import org.apache.sshd.common.cipher.TripleDESCBC;
 import org.apache.sshd.common.compression.CompressionNone;
+import org.apache.sshd.common.forward.CancelTcpipForwardRequest;
 import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
+import org.apache.sshd.common.forward.TcpipForwardRequest;
 import org.apache.sshd.common.forward.TcpipServerChannel;
 import org.apache.sshd.common.future.CloseFuture;
 import org.apache.sshd.common.future.SshFutureListener;
@@ -61,6 +63,8 @@ import org.apache.sshd.common.random.BouncyCastleRandom;
 import org.apache.sshd.common.random.JceRandom;
 import org.apache.sshd.common.random.SingletonRandomFactory;
 import org.apache.sshd.common.service.ConnectionServiceProviderFactory;
+import org.apache.sshd.common.service.GlobalRequestServer;
+import org.apache.sshd.common.service.NoMoreSessionsRequest;
 import org.apache.sshd.common.service.ServiceProviderFactory;
 import org.apache.sshd.common.service.UserAuthServiceProviderFactory;
 import org.apache.sshd.common.session.AbstractSession;
@@ -137,6 +141,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
     protected GSSAuthenticator gssAuthenticator;
     protected ForwardingAcceptorFactory x11ForwardingAcceptorFactory;
     protected NameMap<ServiceProviderFactory> serviceProviderFactories;
+    protected NameMap<GlobalRequestServer> globalRequestServerNameMap;
 
     public SshServer() {
     }
@@ -278,6 +283,14 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         this.serviceProviderFactories = serviceProviderFactories;
     }
 
+    public NameMap<GlobalRequestServer> getGlobalRequestServerNameMap() {
+        return globalRequestServerNameMap;
+    }
+
+    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestServer> globalRequestServerNameMap) {
+        this.globalRequestServerNameMap = globalRequestServerNameMap;
+    }
+
     protected void checkConfig() {
         if (getPort() < 0) {
             throw new IllegalArgumentException("Bad port number: " + port);
@@ -331,6 +344,9 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         }
         if (getX11ForwardingAcceptorFactory() == null) {
             throw new IllegalArgumentException("X11ForwardingAcceptorFactory not set");
+        }
+        if (getGlobalRequestServerNameMap() == null) {
+            throw new IllegalStateException("GlobalRequestServerNameMap is not set");
         }
     }
 
@@ -500,7 +516,10 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         ForwardingAcceptorFactory faf = new DefaultForwardingAcceptorFactory();
         sshd.setTcpipForwardingAcceptorFactory(faf);
         sshd.setX11ForwardNioSocketAcceptorFactory(faf);
-        
+        sshd.setGlobalRequestServerNameMap(new NameMap<GlobalRequestServer>(
+                    new NoMoreSessionsRequest(),
+                    new TcpipForwardRequest(),
+                    new CancelTcpipForwardRequest()));
         return sshd;
     }
 

@@ -47,10 +47,9 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
     private AgentForwardSupport agentForward;
     private final X11ForwardSupport x11Forward;
-    private final NameMap<GlobalRequest> globalRequestMap;
+    private final NameMap<GlobalRequestServer> globalRequestMap;
 
-    protected ConnectionService(String serviceName, T session, Object sessionLock,
-                                NameMap<GlobalRequest> globalRequestMap) {
+    protected ConnectionService(String serviceName, T session, Object sessionLock) {
         super(serviceName, session, sessionLock);
         this.agentForward = session.getFactoryManager().getAgentFactory() != null
                 ? new AgentForwardSupport(this)
@@ -58,8 +57,8 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
         this.x11Forward = session.getFactoryManager().getX11ForwardingAcceptorFactory() != null
                 ? new X11ForwardSupport(this)
                 : null;
+        this.globalRequestMap = session.getFactoryManager().getGlobalRequestServerNameMap();
         this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(this);
-        this.globalRequestMap = globalRequestMap;
     }
 
     public void close(final boolean immediately) {
@@ -218,9 +217,9 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
         if (request.startsWith("keepalive@")) {
             // want error response
         } else {
-            GlobalRequest globalRequest = globalRequestMap.get(request);
-            if (globalRequest != null) {
-                globalRequest.process(this, request, wantReply, buffer);
+            GlobalRequestServer globalRequestServer = globalRequestMap.get(request);
+            if (globalRequestServer != null) {
+                globalRequestServer.process(this, request, wantReply, buffer);
                 return;
             }
             logger.warn("Unknown global request: {}", request);

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.sshd.agent.SshAgentFactory;
+import org.apache.sshd.common.service.GlobalRequestServer;
 
 /**
  * This interface allows retrieving all the <code>NamedFactory</code> used
@@ -178,4 +179,13 @@ public interface FactoryManager {
      * @return A <code>ForwardNioAcceptorFactory</code>
      */
     ForwardingAcceptorFactory getX11ForwardingAcceptorFactory();
+
+    /**
+     * Retrieve the IoAcceptor factory to be used to accept incoming connections
+     * for X11 Forwards.
+     *
+     * @return A <code>ForwardNioAcceptorFactory</code>
+     */
+    NameMap<GlobalRequestServer> getGlobalRequestServerNameMap();
+
 }

@@ -1,10 +1,9 @@
 package org.apache.sshd.common.forward;
 
-import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshdSocketAddress;
+import org.apache.sshd.common.service.AbstractGlobalRequestServer;
 import org.apache.sshd.common.service.ConnectionService;
-import org.apache.sshd.common.service.GlobalRequest;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
@@ -16,7 +15,7 @@ import java.io.IOException;
 * Time: 4:38 PM
 * To change this template use File | Settings | File Templates.
 */
-public class TcpipForwardRequest extends GlobalRequest {
+public class TcpipForwardRequest extends AbstractGlobalRequestServer {
 
     public static final String REQUEST = "tcpip-forward";
 
@@ -24,7 +23,6 @@ public class TcpipForwardRequest extends GlobalRequest {
         super(REQUEST);
     }
 
-    @Override
     public void process(ConnectionService connectionService, String request, boolean wantReply, Buffer buffer) throws Exception {
         String address = buffer.getString();
         int port = buffer.getInt();

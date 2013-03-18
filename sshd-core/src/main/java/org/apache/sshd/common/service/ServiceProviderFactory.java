@@ -1,6 +1,6 @@
 package org.apache.sshd.common.service;
 
-import org.apache.sshd.common.Name;
+import org.apache.sshd.common.AbstractName;
 import org.apache.sshd.server.session.ServerSession;
 
 /**
@@ -10,7 +10,7 @@ import org.apache.sshd.server.session.ServerSession;
  * Time: 2:42 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract class ServiceProviderFactory extends Name {
+public abstract class ServiceProviderFactory extends AbstractName {
 
     protected ServiceProviderFactory(String name) {
         super(name);

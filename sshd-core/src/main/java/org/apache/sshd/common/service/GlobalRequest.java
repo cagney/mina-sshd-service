@@ -1,6 +1,6 @@
 package org.apache.sshd.common.service;
 
-import org.apache.sshd.common.Name;
+import org.apache.sshd.common.AbstractName;
 import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshConstants;
@@ -18,7 +18,7 @@ import java.util.Map;
  * Time: 2:43 PM
  * To change this template use File | Settings | File Templates.
  */
-abstract public class GlobalRequest extends Name {
+abstract public class GlobalRequest extends AbstractName {
 
     protected GlobalRequest(String name) {
         super(name);

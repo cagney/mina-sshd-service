@@ -1,17 +1,10 @@
 package org.apache.sshd.common;
 
 /**
- * A named class.  Perhaps this should be an interface with accompanying abstract implementation.
+ * Give a class a name; see NameMap for why.
  */
-abstract public class Name {
+public interface Name {
 
-    protected final String name;
+    String getName();
 
-    protected Name(String name) {
-        this.name = name;
-    }
-
-    public final String getName() {
-        return name;
-    }
 }

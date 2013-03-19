@@ -25,6 +25,9 @@ import java.io.OutputStream;
 import org.apache.sshd.ClientChannel;
 import org.apache.sshd.client.future.DefaultOpenFuture;
 import org.apache.sshd.client.future.OpenFuture;
+import org.apache.sshd.common.AbstractName;
+import org.apache.sshd.common.Channel;
+import org.apache.sshd.common.ChannelRequestHandler;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.channel.AbstractChannel;
@@ -52,6 +55,9 @@ public abstract class AbstractClientChannel extends AbstractChannel implements C
     protected OpenFuture openFuture;
 
     protected AbstractClientChannel(String type) {
+        this.channelRequestProcessor.put(
+                new ExitStatusChannelRequestHandler(),
+                new ExitSignalChannelRequestHandler());
         this.type = type;
     }
 
@@ -233,23 +239,30 @@ public abstract class AbstractClientChannel extends AbstractChannel implements C
         localWindow.consumeAndCheck(len);
     }
 
-    public void handleRequest(Buffer buffer) throws IOException {
-        log.info("Received SSH_MSG_CHANNEL_REQUEST on channel {}", id);
-        String req = buffer.getString();
-        if ("exit-status".equals(req)) {
-            buffer.getBoolean();
+    private class ExitStatusChannelRequestHandler extends AbstractName implements ChannelRequestHandler {
+        ExitStatusChannelRequestHandler() {
+            super("exit-status");
+        }
+        public Boolean process(Channel channel, boolean wantReply, Buffer buffer) {
             synchronized (lock) {
                 exitStatus = Integer.valueOf(buffer.getInt());
                 lock.notifyAll();
+                return true;
             }
-        } else if ("exit-signal".equals(req)) {
-            buffer.getBoolean();
+        }
+    }
+
+    private class ExitSignalChannelRequestHandler extends AbstractName implements ChannelRequestHandler {
+        ExitSignalChannelRequestHandler() {
+            super("exit-signal");
+        }
+        public Boolean process(Channel channel, boolean wantReply, Buffer buffer) {
             synchronized (lock) {
                 exitSignal = buffer.getString();
                 lock.notifyAll();
+                return true;
             }
         }
-        // TODO: handle other channel requests
     }
 
     public Integer getExitStatus() {

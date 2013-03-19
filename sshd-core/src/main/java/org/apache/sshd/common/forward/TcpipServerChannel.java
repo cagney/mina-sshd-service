@@ -195,13 +195,4 @@ public class TcpipServerChannel extends AbstractServerChannel {
     protected void doWriteExtendedData(byte[] data, int off, int len) throws IOException {
         throw new UnsupportedOperationException(type + "Tcpip channel does not support extended data");
     }
-
-    public void handleRequest(Buffer buffer) throws IOException {
-        log.info("Received SSH_MSG_CHANNEL_REQUEST on channel {}", id);
-        String type = buffer.getString();
-        log.info("Received channel request: {}", type);
-        buffer = session.createBuffer(SshConstants.Message.SSH_MSG_CHANNEL_FAILURE, 0);
-        buffer.putInt(recipient);
-        session.writePacket(buffer);
-    }
 }

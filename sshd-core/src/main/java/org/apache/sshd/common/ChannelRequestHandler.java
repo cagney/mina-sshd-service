@@ -2,6 +2,8 @@ package org.apache.sshd.common;
 
 import org.apache.sshd.common.util.Buffer;
 
+import java.io.IOException;
+
 /**
  * Created with IntelliJ IDEA.
  * User: cagney
@@ -18,6 +20,6 @@ public interface ChannelRequestHandler extends Name {
      * @param buffer
      * @return
      */
-    Boolean process(Channel channel, boolean wantReply, Buffer buffer);
+    Boolean process(Channel channel, boolean wantReply, Buffer buffer) throws IOException;
 
 }

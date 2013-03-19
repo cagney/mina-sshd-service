@@ -21,6 +21,7 @@ package org.apache.sshd.common.channel;
 import java.io.IOException;
 
 import org.apache.sshd.common.Channel;
+import org.apache.sshd.common.ChannelRequestProcessor;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshConstants;
@@ -53,6 +54,7 @@ public abstract class AbstractChannel implements Channel {
     protected boolean eof;
     protected final CloseFuture closeFuture = new DefaultCloseFuture(lock);
     protected boolean closing;
+    protected final ChannelRequestProcessor channelRequestProcessor = new ChannelRequestProcessor(log);
 
     public int getId() {
         return id;
@@ -71,7 +73,7 @@ public abstract class AbstractChannel implements Channel {
     }
 
     public void handleRequest(Buffer buffer) throws IOException {
-        throw new IllegalStateException();
+        channelRequestProcessor.process(this, buffer);
     }
 
     public void init(Session session, ConnectionService connection, int id) {

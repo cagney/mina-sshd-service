@@ -1,6 +1,5 @@
 package org.apache.sshd.common;
 
-import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +15,20 @@ import java.io.IOException;
  */
 public class ChannelRequestProcessor {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger;
 
-    private final NameMap<ChannelRequestHandler> globalRequestHandlerNameMap;
+    private final NameMap<ChannelRequestHandler> globalRequestHandlerNameMap = new NameMap<ChannelRequestHandler>();
 
-    public ChannelRequestProcessor(ChannelRequestHandler... globalRequestHandlers) {
-        this.globalRequestHandlerNameMap = new NameMap<ChannelRequestHandler>(globalRequestHandlers);
+    public ChannelRequestProcessor(Logger logger) {
+        this.logger = logger;
     }
 
-    private void replySuccess(Channel channel, boolean wantReply) throws Exception {
+    public ChannelRequestProcessor put(ChannelRequestHandler... globalRequestHandlers) {
+        this.globalRequestHandlerNameMap.put(globalRequestHandlers);
+        return this;
+    }
+
+    private void replySuccess(Channel channel, boolean wantReply) throws IOException {
         if (wantReply) {
             Session session = channel.getSession();
             Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_CHANNEL_SUCCESS, 0);
@@ -33,7 +37,7 @@ public class ChannelRequestProcessor {
         }
     }
 
-    private void replyFailure(Channel channel, boolean wantReply) throws Exception {
+    private void replyFailure(Channel channel, boolean wantReply) throws IOException {
         if (wantReply) {
             Session session = channel.getSession();
             Buffer buffer = session.createBuffer(SshConstants.Message.SSH_MSG_CHANNEL_FAILURE, 0);
@@ -42,7 +46,7 @@ public class ChannelRequestProcessor {
         }
     }
 
-    public void process(Channel channel, Buffer buffer) throws Exception {
+    public void process(Channel channel, Buffer buffer) throws IOException {
         String requestType = buffer.getString();
         boolean wantReply = buffer.getBoolean();
         logger.debug("Received SSH_MSG_CHANNEL_REQUEST {} on channel {} (wantReply {})", new Object[] { requestType, channel.getId(), wantReply });

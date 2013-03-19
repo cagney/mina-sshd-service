@@ -48,6 +48,7 @@ import org.apache.sshd.client.kex.DHG1;
 import org.apache.sshd.client.kex.DHG14;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSessionImpl;
+import org.apache.sshd.common.GlobalRequestProcessor;
 import org.apache.sshd.common.NameMap;
 import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
 import org.apache.sshd.common.TcpipForwarderFactory;
@@ -140,7 +141,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
     protected IoConnector connector;
     protected SessionFactory sessionFactory;
 
-    protected NameMap<GlobalRequestHandler> globalRequestServerNameMap;
+    protected GlobalRequestProcessor globalRequestProcessor;
 
     private ServerKeyVerifier serverKeyVerifier;
     private ServiceClientsFactory serviceClientsFactory;
@@ -176,12 +177,12 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         return null;
     }
 
-    public NameMap<GlobalRequestHandler> getGlobalRequestServerNameMap() {
-        return globalRequestServerNameMap;
+    public GlobalRequestProcessor getGlobalRequestProcessor() {
+        return globalRequestProcessor;
     }
 
-    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestHandler> globalRequestServerNameMap) {
-        this.globalRequestServerNameMap = globalRequestServerNameMap;
+    public void setGlobalRequestProcessor(GlobalRequestProcessor globalRequestProcessor) {
+        this.globalRequestProcessor = globalRequestProcessor;
     }
 
     protected void checkConfig() {
@@ -226,8 +227,8 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
             factories.add(getAgentFactory().getChannelForwardingFactory());
             setChannelFactories(factories);
         }
-        if (getGlobalRequestServerNameMap() == null) {
-            throw new IllegalStateException("GlobalRequestServerNameMap not set");
+        if (getGlobalRequestProcessor() == null) {
+            throw new IllegalStateException("GlobalRequestProcessor not set");
         }
     }
 
@@ -326,7 +327,7 @@ public class SshClient extends AbstractFactoryManager implements ClientFactoryMa
         client.setTcpipForwarderFactory( tcpipForwarderFactory );
         client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
         client.setServiceClientsFactory(new DefaultServiceClientsFactory());
-        client.setGlobalRequestServerNameMap(new NameMap<GlobalRequestHandler>());
+        client.setGlobalRequestProcessor(new GlobalRequestProcessor());
         return client;
     }
 

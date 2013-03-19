@@ -141,7 +141,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
     protected GSSAuthenticator gssAuthenticator;
     protected ForwardingAcceptorFactory x11ForwardingAcceptorFactory;
     protected NameMap<ServiceProviderFactory> serviceProviderFactories;
-    protected NameMap<GlobalRequestHandler> globalRequestServerNameMap;
+    protected GlobalRequestProcessor globalRequestProcessor;
 
     public SshServer() {
     }
@@ -283,12 +283,12 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         this.serviceProviderFactories = serviceProviderFactories;
     }
 
-    public NameMap<GlobalRequestHandler> getGlobalRequestServerNameMap() {
-        return globalRequestServerNameMap;
+    public GlobalRequestProcessor getGlobalRequestProcessor() {
+        return globalRequestProcessor;
     }
 
-    public void setGlobalRequestServerNameMap(NameMap<GlobalRequestHandler> globalRequestServerNameMap) {
-        this.globalRequestServerNameMap = globalRequestServerNameMap;
+    public void setGlobalRequestProcessor(GlobalRequestProcessor globalRequestProcessor) {
+        this.globalRequestProcessor = globalRequestProcessor;
     }
 
     protected void checkConfig() {
@@ -345,8 +345,8 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         if (getX11ForwardingAcceptorFactory() == null) {
             throw new IllegalArgumentException("X11ForwardingAcceptorFactory not set");
         }
-        if (getGlobalRequestServerNameMap() == null) {
-            throw new IllegalStateException("GlobalRequestServerNameMap is not set");
+        if (getGlobalRequestProcessor() == null) {
+            throw new IllegalStateException("GlobalRequestProcessor is not set");
         }
     }
 
@@ -516,7 +516,7 @@ public class SshServer extends AbstractFactoryManager implements ServerFactoryMa
         ForwardingAcceptorFactory faf = new DefaultForwardingAcceptorFactory();
         sshd.setTcpipForwardingAcceptorFactory(faf);
         sshd.setX11ForwardNioSocketAcceptorFactory(faf);
-        sshd.setGlobalRequestServerNameMap(new NameMap<GlobalRequestHandler>(
+        sshd.setGlobalRequestProcessor(new GlobalRequestProcessor(
                     new NoMoreSessionsRequest(),
                     new TcpipForwardRequest(),
                     new CancelTcpipForwardRequest()));

@@ -13,6 +13,15 @@ import org.apache.sshd.common.util.Buffer;
  */
 public interface GlobalRequestHandler extends Name {
 
-    void process(ConnectionService connectionService, String request, boolean wantReply, Buffer buffer) throws Exception;
+    /**
+     * Process the ssh-connection global request.   Either the code can locally reply (and return null) or
+     * return True (success) or False (failure) and the wrapping code generates the reply IFF wantReply.
+     * @param connectionService
+     * @param wantReply
+     * @param buffer
+     * @return True if the operation succeeded, False if the operation failed, and null if no reply is needed.
+     * @throws Exception
+     */
+    Boolean process(ConnectionService connectionService, boolean wantReply, Buffer buffer) throws Exception;
 
 }

@@ -1,8 +1,9 @@
 package org.apache.sshd.common.forward;
 
+import org.apache.sshd.common.AbstractName;
+import org.apache.sshd.common.GlobalRequestHandler;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshdSocketAddress;
-import org.apache.sshd.common.AbstractGlobalRequestHandler;
 import org.apache.sshd.common.service.ConnectionService;
 import org.apache.sshd.common.util.Buffer;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
 * Time: 4:39 PM
 * To change this template use File | Settings | File Templates.
 */
-public class CancelTcpipForwardRequest extends AbstractGlobalRequestHandler {
+public class CancelTcpipForwardRequest extends AbstractName implements GlobalRequestHandler {
 
     public static final String REQUEST = "cancel-tcpip-forward";
 
@@ -23,11 +24,11 @@ public class CancelTcpipForwardRequest extends AbstractGlobalRequestHandler {
         super(REQUEST);
     }
 
-    public void process(ConnectionService connectionService, String request, boolean wantReply, Buffer buffer)  throws Exception{
+    public Boolean process(ConnectionService connectionService, boolean wantReply, Buffer buffer)  throws Exception{
         String address = buffer.getString();
         int port = buffer.getInt();
         connectionService.getTcpipForwarder().localPortForwardingCancelled(new SshdSocketAddress(address, port));
-        replySuccess(connectionService, wantReply);
+        return Boolean.TRUE;
     }
 
     public static void request(ConnectionService connection, SshdSocketAddress remote) throws IOException {

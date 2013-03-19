@@ -180,11 +180,10 @@ public interface FactoryManager {
     ForwardingAcceptorFactory getX11ForwardingAcceptorFactory();
 
     /**
-     * Retrieve the IoAcceptor factory to be used to accept incoming connections
-     * for X11 Forwards.
+     * Retrieve the processor that handles ssh-connection service's global requests.
      *
-     * @return A <code>ForwardNioAcceptorFactory</code>
+     * @return A <code>GlobalRequestProcessor</code>
      */
-    NameMap<GlobalRequestHandler> getGlobalRequestServerNameMap();
+    GlobalRequestProcessor getGlobalRequestProcessor();
 
 }

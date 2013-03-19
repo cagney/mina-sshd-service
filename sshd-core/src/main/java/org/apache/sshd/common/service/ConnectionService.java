@@ -4,8 +4,7 @@ import org.apache.sshd.agent.common.AgentForwardSupport;
 import org.apache.sshd.client.channel.AbstractClientChannel;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.common.Channel;
-import org.apache.sshd.common.GlobalRequestHandler;
-import org.apache.sshd.common.NameMap;
+import org.apache.sshd.common.GlobalRequestProcessor;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.SshConstants;
 import org.apache.sshd.common.SshException;
@@ -48,7 +47,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
 
     private AgentForwardSupport agentForward;
     private final X11ForwardSupport x11Forward;
-    private final NameMap<GlobalRequestHandler> globalRequestMap;
+    private final GlobalRequestProcessor globalRequestProcessor;
 
     protected ConnectionService(String serviceName, T session, Object sessionLock) {
         super(serviceName, session, sessionLock);
@@ -58,7 +57,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
         this.x11Forward = session.getFactoryManager().getX11ForwardingAcceptorFactory() != null
                 ? new X11ForwardSupport(this)
                 : null;
-        this.globalRequestMap = session.getFactoryManager().getGlobalRequestServerNameMap();
+        this.globalRequestProcessor = session.getFactoryManager().getGlobalRequestProcessor();
         this.tcpipForwarder = session.getFactoryManager().getTcpipForwarderFactory().create(this);
     }
 
@@ -212,23 +211,7 @@ public abstract class ConnectionService<T extends AbstractSession> extends Abstr
     }
 
     private void processGlobalRequest(Buffer buffer) throws Exception {
-        String request = buffer.getString();
-        boolean wantReply = buffer.getBoolean();
-        logger.debug("Received SSH_MSG_GLOBAL_REQUEST {}", request);
-        if (request.startsWith("keepalive@")) {
-            // want error response
-        } else {
-            GlobalRequestHandler globalRequestHandler = globalRequestMap.get(request);
-            if (globalRequestHandler != null) {
-                globalRequestHandler.process(this, request, wantReply, buffer);
-                return;
-            }
-            logger.warn("Unknown global request: {}", request);
-        }
-        if (wantReply) {
-            Buffer response = session.createBuffer(SshConstants.Message.SSH_MSG_REQUEST_FAILURE, 0);
-            session.writePacket(response);
-        }
+        globalRequestProcessor.process(this, buffer);
     }
 
     public int getNextChannelId() {

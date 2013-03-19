@@ -14,9 +14,6 @@ public class NameMap<N extends Name> {
 
     private final Map<String, N> map = new LinkedHashMap<String, N>();
 
-    public NameMap() {
-    }
-
     public NameMap(N... names) {
         put(names);
     }

@@ -1,6 +1,7 @@
 package org.apache.sshd.common.service;
 
-import org.apache.sshd.common.AbstractGlobalRequestHandler;
+import org.apache.sshd.common.AbstractName;
+import org.apache.sshd.common.GlobalRequestHandler;
 import org.apache.sshd.common.util.Buffer;
 
 /**
@@ -10,12 +11,13 @@ import org.apache.sshd.common.util.Buffer;
 * Time: 12:47 PM
 * To change this template use File | Settings | File Templates.
 */
-public class NoMoreSessionsRequest extends AbstractGlobalRequestHandler {
+public class NoMoreSessionsRequest extends AbstractName implements GlobalRequestHandler {
     public NoMoreSessionsRequest() {
         super("no-more-sessions@openssh.com");
     }
 
-    public void process(ConnectionService connectionService, String request, boolean wantReply, Buffer buffer) {
+    public Boolean process(ConnectionService connectionService, boolean wantReply, Buffer buffer) {
         connectionService.setAllowMoreSessions(false);
+        return Boolean.TRUE;
     }
 }

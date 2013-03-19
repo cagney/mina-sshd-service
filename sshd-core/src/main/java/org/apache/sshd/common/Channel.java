@@ -35,6 +35,8 @@ public interface Channel {
 
     int getId();
 
+    int getRecipient();
+
     Window getLocalWindow();
 
     Session getSession();

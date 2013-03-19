@@ -9,7 +9,15 @@ import org.apache.sshd.common.util.Buffer;
  * Time: 2:04 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface ChannelRequestHandler {
+public interface ChannelRequestHandler extends Name {
 
-    void process(Buffer buffer);
+    /**
+     * Process the request, return null if the method handled the reply, else return True or False.
+     * @param channel
+     * @param wantReply
+     * @param buffer
+     * @return
+     */
+    Boolean process(Channel channel, boolean wantReply, Buffer buffer);
+
 }

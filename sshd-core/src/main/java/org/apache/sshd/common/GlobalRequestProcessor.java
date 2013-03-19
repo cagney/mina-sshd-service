@@ -39,16 +39,16 @@ public class GlobalRequestProcessor {
     }
 
     public void process(ConnectionService connectionService, Buffer buffer) throws Exception {
-        String request = buffer.getString();
+        String requestName = buffer.getString();
         boolean wantReply = buffer.getBoolean();
-        logger.debug("Received SSH_MSG_GLOBAL_REQUEST {} (wantReply {})", request, wantReply);
-        if (request.startsWith("keepalive@")) {
+        logger.debug("Received SSH_MSG_GLOBAL_REQUEST {} (wantReply {})", requestName, wantReply);
+        if (requestName.startsWith("keepalive@")) {
             // want error response; TODO: get rid of the hack.
             replyFailure(connectionService, wantReply);
         } else {
-            GlobalRequestHandler globalRequestHandler = globalRequestHandlerNameMap.get(request);
+            GlobalRequestHandler globalRequestHandler = globalRequestHandlerNameMap.get(requestName);
             if (globalRequestHandler == null) {
-                logger.warn("Unknown global request: {}", request);
+                logger.warn("Unknown global request: {}", requestName);
                 replyFailure(connectionService, wantReply);
             } else {
                 Boolean result = globalRequestHandler.process(connectionService, wantReply, buffer);
